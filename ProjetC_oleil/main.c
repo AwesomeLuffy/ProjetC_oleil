@@ -43,9 +43,14 @@ int main(int argc, char *argv[ ])
         //Part to handle user interaction
         while (SDL_PollEvent(&event) != 0)
         {
-            if (event.type == SDL_QUIT) {
-                isGameRunning = false;
+            switch (event.type) {
+                case SDL_QUIT:
+                case SDLK_ESCAPE:
+                case SDLK_q:
+                    isGameRunning = false;
+                    break;
             }
+
         }
 
         // Each 16,7ms (so to allow the game to run at 60FPS) we process to an update
