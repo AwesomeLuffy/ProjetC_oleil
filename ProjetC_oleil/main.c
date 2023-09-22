@@ -1,61 +1,89 @@
-/*This source code copyrighted by Lazy Foo' Productions 2004-2023
-and may not be redistributed without written permission.*/
-
-//Using SDL and standard IO
 #include <SDL.h>
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include "model/model.h"
 #include <stdbool.h>
 
-//Screen dimension constants
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
 
-int main(int argc, char* args[])
+int main(int argc, char *argv[ ])
 {
-    //The window we'll be rendering to
-    SDL_Window* window = NULL;
+    const float DELTA_TIME = 1000 / 60.0; //60FPS
+    const int VELOCITY = -2;
 
-    //The surface contained by the window
-    SDL_Surface* screenSurface = NULL;
+    SDL_Window* window; // Actual Window that will contains the size and other parameters
+    SDL_Renderer* render; // i don't know what is this
+    SDL_Event event; // Allow to check if input from the user
 
-    //Initialize SDL
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    Uint32 startMillis, currentMillis; // To handle time
+    SDL_Rect rectangle = { 200, 200, 100, 100 }; // Definition of a test rectangle
+
+    bool isGameRunning = true; // Bool to check if game is running
+
+    // Initialize SDL
+    SDL_Init(SDL_INIT_VIDEO);
+
+    // Initialize the startMillis
+    startMillis = SDL_GetTicks();
+
+    window = SDL_CreateWindow("Game test",
+        SDL_WINDOWPOS_UNDEFINED,
+        SDL_WINDOWPOS_UNDEFINED,
+        1024,
+        800,
+        SDL_WINDOW_SHOWN);
+
+    render = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+
+    while (isGameRunning)
     {
-        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-    }
-    else
-    {
-        //Create window
-        window = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-        if (window == NULL)
+        // Get for how many time the game run
+        currentMillis = SDL_GetTicks();
+
+        //Part to handle user interaction
+        while (SDL_PollEvent(&event) != 0)
         {
-            printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+            if (event.type == SDL_QUIT) {
+                isGameRunning = false;
+            }
         }
-        else
-        {
-            //Get window surface
-            screenSurface = SDL_GetWindowSurface(window);
 
+        // Each 16,7ms (so to allow the game to run at 60FPS) we process to an update
+        if (currentMillis - startMillis >= DELTA_TIME) {
 
-            //Fill the surface white
-            SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
+            SDL_SetRenderDrawColor(render, 0, 0, 255, 255);
 
-            SDL_Rect rect = { 0, 0, 100, 100 };
+            SDL_RenderClear(render);
+            rectangle.x += 2 * VELOCITY;
 
-            SDL_FillRect(screenSurface, &rect, SDL_MapRGB(screenSurface->format, 245, 232, 2));
-            //Update the surface
-            SDL_UpdateWindowSurface(window);
+            SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
 
-            //Hack to get window to stay up
-            SDL_Event e; bool quit = false; while (quit == false) { while (SDL_PollEvent(&e)) { if (e.type == SDL_QUIT) quit = true; } }
+            SDL_RenderFillRect(render, &rectangle);
+
+            SDL_RenderPresent(render);
+
+            // This part is for printing FPS on the top of the window
+            if (currentMillis - startMillis > 0) {
+                char buffer[1024];
+
+                // Replace "%f" with the FPS, the function change the value of the char buffer
+                snprintf(buffer, sizeof(buffer), "ProjetC_oleil | FPS : %f | Lol", (1000.0 / (currentMillis - startMillis)));
+
+                // Change the window title
+                SDL_SetWindowTitle(window, buffer);
+
+            }
+
+            // Reset startMillis to check the time
+            startMillis = SDL_GetTicks();
+
         }
+
+
     }
 
-    //Destroy window
     SDL_DestroyWindow(window);
-
-    //Quit SDL subsystems
+    SDL_DestroyRenderer(render);
     SDL_Quit();
 
     return 0;
