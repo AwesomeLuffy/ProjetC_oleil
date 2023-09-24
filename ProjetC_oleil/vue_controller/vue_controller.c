@@ -1,4 +1,3 @@
-#pragma once
 #include "../model/model.h"
 #include <SDL.h>
 #include <stdio.h>
@@ -30,12 +29,10 @@ void update(Game* game) {
 
         // Replace "%f" with the FPS, the function change the value of the char gameTitleBuffer
         snprintf(game->gameObjects->gameTitleBuffer,
-            sizeof(game->gameObjects->gameTitleBuffer),
+            sizeof(char[1024]),
             "ProjetC_oleil | FPS : %f | Lol",
             (1000.0 / (game->clock.currentMillis - game->clock.startMillis))
         );
-
-
     }
 }
 

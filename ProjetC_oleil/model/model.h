@@ -4,13 +4,13 @@
 
 // Structure that contains all things related to handle the time of the game
 typedef struct Clock_s {
-    float DELTA_TIME;
+    double DELTA_TIME;
     Uint32 startMillis, currentMillis;
 } Clock;
 
 // All objects that the game will contains (rectangle, planet, etc.)
 typedef struct GameContent_s {
-    char *gameTitleBuffer[1024];
+    char *gameTitleBuffer;
     SDL_Rect* rectangle;
 } GameObjects;
 
@@ -26,4 +26,3 @@ typedef struct Game_s {
 
 // init the game (create the window and the rendering struct)
 Game init();
-

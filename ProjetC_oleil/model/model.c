@@ -17,5 +17,6 @@ Game init() {
     game.isGameRunning = true;
     // To not have a nullptr when we will want to use the gameObjects, we allocate memory for it
     game.gameObjects = malloc(sizeof(GameObjects));
+    game.gameObjects->gameTitleBuffer = malloc(1024);
     return game;
 }
