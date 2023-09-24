@@ -11,6 +11,8 @@ Game init() {
     game.window = SDL_CreateWindow("Game test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1024, 800, SDL_WINDOW_SHOWN);
     // The renderer struct
     game.render = SDL_CreateRenderer(game.window, -1, SDL_RENDERER_ACCELERATED);
+    // Initialize the event structure
+    game.event = malloc(sizeof(SDL_Event));
     // To allow the loop to run we initialize it to true
     game.isGameRunning = true;
     // To not have a nullptr when we will want to use the gameObjects, we allocate memory for it

@@ -9,6 +9,23 @@
 * @param game The game structure that contains all necessary elements for allow the game to run
 */
 void update(Game* game) {
+
+    // Part to handle user interaction
+    while (SDL_PollEvent(game->event) != 0)
+    {
+        switch (game->event->type) {
+        case SDL_KEYDOWN:
+            switch (game->event->key.keysym.sym) {
+            case SDL_QUIT:
+            case SDLK_ESCAPE:
+            case SDLK_q:
+                game->isGameRunning = false;
+                break;
+            }
+
+        }
+
+    }
     if (game->clock.currentMillis - game->clock.startMillis > 0) {
 
         // Replace "%f" with the FPS, the function change the value of the char gameTitleBuffer
@@ -62,9 +79,6 @@ void run(Game *game){
     game->gameObjects->rectangle = &rectangle;
 
 
-    // Allow to check if input from the user
-    SDL_Event event; 
-
     // Set the delta time to 60 FPS, so each update will be set each 16,7Ms
     game->clock.DELTA_TIME = 1000 / 60.0;
 
@@ -76,19 +90,6 @@ void run(Game *game){
     {
         // Get for how many time the game run
         game->clock.currentMillis = SDL_GetTicks();
-
-        // Part to handle user interaction
-        while (SDL_PollEvent(&event) != 0)
-        {
-            switch (event.type) {
-            case SDL_QUIT:
-            case SDLK_ESCAPE:
-            case SDLK_q:
-                game->isGameRunning = false;
-                break;
-            }
-
-        }
 
         // Each 16,7ms (so to allow the game to run at 60FPS) we process to an update
         if (game->clock.currentMillis - game->clock.startMillis >= game->clock.DELTA_TIME) {
@@ -102,9 +103,6 @@ void run(Game *game){
 
         // Render all elements
         render(game);
-
-
-
     }
 
 }

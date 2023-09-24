@@ -17,7 +17,8 @@ typedef struct GameContent_s {
 // Structure that contains the game itself (the window, the rendering, etc.)
 typedef struct Game_s {
     SDL_Window* window; // Actual Window that will contains the size and other parameters
-    SDL_Renderer* render; // i don't know what is this
+    SDL_Renderer* render; // Renderering struct
+    SDL_Event* event; // Allow to check if input from the user
     bool isGameRunning;
     GameObjects* gameObjects;
     Clock clock;
