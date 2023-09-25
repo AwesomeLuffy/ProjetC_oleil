@@ -93,13 +93,15 @@ void run(Game *game){
 
             update(game);
 
+
+            // Render all elements
+            render(game);
+
             // Reset startMillis to check the time
             game->clock.startMillis = SDL_GetTicks();
 
         }
 
-        // Render all elements
-        render(game);
     }
 
 }
