@@ -1,8 +1,4 @@
 #include <SDL2/SDL.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include "model/model.h"
-#include <stdbool.h>
 #include "vue_controller/vue_controller.h"
 
 
