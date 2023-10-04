@@ -1,8 +1,8 @@
 #include "vue_controller.h"
+#include "../model/model.h"
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
-
 
 /**
 * This function initialize some values related to the "Game" structure
@@ -20,8 +20,10 @@ Game init() {
     // To allow the loop to run we initialize it to true
     game.isGameRunning = true;
     // To not have a nullptr when we will want to use the gameObjects, we allocate memory for it
-    game.gameObjects = malloc(sizeof(GameObjects));
+    game.gameObjects = (GameObjects*)calloc(2, sizeof(GameObjects));
     game.gameObjects->gameTitleBuffer = malloc(1024);
+    game.gameObjects->universe = initUniverse();
+    
     return game;
 }
 
@@ -46,8 +48,8 @@ void update(Game* game) {
             }
 
         }
-
     }
+
     if (game->clock.currentMillis - game->clock.startMillis > 0) {
 
         // Replace "%f" with the FPS, the function change the value of the char gameTitleBuffer
@@ -71,18 +73,29 @@ void render(Game* game) {
     //Clear all elements in the actual frame and set the backgrond in black.
     SDL_RenderClear(game->render);
 
-    // Pen color in red
-    SDL_SetRenderDrawColor(game->render, 255, 0, 0, 0);
+    // Pen color in white
+    SDL_SetRenderDrawColor(game->render, 255, 255, 255, 0);
 
-    // Create a rectangle (that will be red cause of the previous line)
-    SDL_RenderFillRect(game->render, game->gameObjects->rectangle);
+    // Draw the start square
+    SDL_RenderFillRect(game->render, &(game->gameObjects->universe->rectStart));
+
+    //Draw the end square
+    SDL_RenderFillRect(game->render, &(game->gameObjects->universe->rectEnd));
+
+    // Pen color in red
+    SDL_SetRenderDrawColor(game->render, 255, 255, 255, 0);
+
+    // Draw the ship square
+    SDL_RenderFillRect(game->render, &(game->gameObjects->universe->ship.rectShip));
 
     // Change the window title to show game name, fps , etc.)
     SDL_SetWindowTitle(game->window, game->gameObjects->gameTitleBuffer);
 
     Sint16 x = 50;
+    // Update the screen
     Sint16 y = 50;
-    int result = filledCircleColor(game->render, 30, 30, 5, 0xFF0000FF);    // Update the screen
+    int result = filledCircleColor(game->render, 30, 30, 5, 0xFF0000FF);
+    // Update the screen
     SDL_RenderPresent(game->render);
 
 
@@ -94,12 +107,6 @@ void render(Game* game) {
 * @param game The game structure that contains all necessary elements for allow the game to run 
 */
 void run(Game *game){
-
-
-    SDL_Rect rectangle = { 300, 675, 10, 10 }; // Definition of a test rectangle
-    // Set the rectangle as a gameObjects to update and render it
-    game->gameObjects->rectangle = &rectangle;
-
 
     // Set the delta time to 60 FPS, so each update will be set each 16,7Ms
     game->clock.DELTA_TIME = 1000 / 60.0;

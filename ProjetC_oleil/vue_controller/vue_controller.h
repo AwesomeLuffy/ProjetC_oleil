@@ -1,6 +1,7 @@
 #pragma once
 #include <SDL2/SDL.h>
 #include <stdbool.h>
+#include "../model/model.h"
 
 // Structure that contains all things related to handle the time of the game
 typedef struct Clock_s {
@@ -11,7 +12,7 @@ typedef struct Clock_s {
 // All objects that the game will contains (rectangle, planet, etc.)
 typedef struct GameContent_s {
     char* gameTitleBuffer;
-    SDL_Rect* rectangle;
+    Universe* universe;
 } GameObjects;
 
 // Structure that contains the game itself (the window, the rendering, etc.)
