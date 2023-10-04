@@ -3,16 +3,18 @@
 #define true 1
 #define false 0
 
-#define RED {255, 0, 0, 255}
-#define GREEN {0, 255, 0, 255}
-#define BLUE {0, 0, 255, 255}
-#define WHITE {255, 255, 255, 255}
-#define BLACK {0, 0, 0, 255}
-#define YELLOW {255, 255, 0, 255}
-
 #include <SDL2/SDL.h>
 #include "../model/model.h"
 
+typedef struct Color {
+    SDL_Color* RED;
+    SDL_Color* GREEN;
+    SDL_Color* BLUE;
+    SDL_Color* WHITE;
+    SDL_Color* BLACK;
+    SDL_Color* YELLOW;
+    SDL_Color* CYAN;
+} Color;
 // Structure that contains all things related to handle the time of the game
 typedef struct Clock_s {
     double DELTA_TIME;
@@ -33,11 +35,13 @@ typedef struct Game_s {
     SDL_Event* event; // Allow to check if input from the user
     int isGameRunning;
     GameObjects* gameObjects;
+    Color* color;
     Clock clock;
 } Game;
 
 // init the game (create the window and the rendering struct)
-Game init();
+void init(Game *game);
+void initColor(Color *color);
 void run(Game *game);
 void update(Game *game);
 void render(Game *game);
