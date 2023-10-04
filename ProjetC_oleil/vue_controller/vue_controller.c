@@ -1,6 +1,8 @@
 #include "vue_controller.h"
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <stdio.h>
+#include <SDL2/SDL2_gfxPrimitives.h>
+
 
 /**
 * This function initialize some values related to the "Game" structure
@@ -78,7 +80,9 @@ void render(Game* game) {
     // Change the window title to show game name, fps , etc.)
     SDL_SetWindowTitle(game->window, game->gameObjects->gameTitleBuffer);
 
-    // Update the screen
+    Sint16 x = 50;
+    Sint16 y = 50;
+    int result = filledCircleColor(game->render, 30, 30, 5, 0xFF0000FF);    // Update the screen
     SDL_RenderPresent(game->render);
 
 

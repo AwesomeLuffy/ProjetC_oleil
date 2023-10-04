@@ -1,5 +1,5 @@
 #pragma once
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <stdbool.h>
 
 // Structure that contains all things related to handle the time of the game
