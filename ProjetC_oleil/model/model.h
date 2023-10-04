@@ -1,4 +1,5 @@
 #pragma once
+# include <SDL2/SDL.h>
 
 /// @brief Structure to store a coordinate
 /// @param x The x coordinate
@@ -56,6 +57,8 @@ typedef struct Ship_s {
     int speed;
     int angle;
     Vector* vectors;
+    SDL_Rect rectShip;
+
 } Ship;
 
 /// @brief Structure to store a game
@@ -69,7 +72,9 @@ typedef struct Universe_s {
     int nbSolarSystem;
     Ship ship;
     Coord start;
+    SDL_Rect rectStart;
     Coord end;
+    SDL_Rect rectEnd;
 } Universe;
 
 /// @brief Function to destroy a game
