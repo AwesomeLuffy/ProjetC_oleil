@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     SDL_Init(SDL_INIT_VIDEO);
 
     // Init the window and the rendering
-    init(game);
+    game = init();
 
     // Run the game
     run(game);

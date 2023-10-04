@@ -42,7 +42,7 @@ typedef struct Game_s {
 } Game;
 
 // init the game (create the window and the rendering struct)
-void init(Game *game);
+Game* init();
 void initColor(Color *color);
 void run(Game *game);
 void update(Game *game);

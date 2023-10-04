@@ -35,7 +35,8 @@ void initColor(Color *color) {
 *
 * @return a game structure
 */
-void init(Game *game) {
+Game* init() {
+    Game *game = malloc(sizeof(Game));
     // Create the window with the specified size, if we add "SDL_WINDOW_RESIZABLE" flags, it will allow to resize the window during the game
     game->window = SDL_CreateWindow("Game test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1024, 800,
                                     SDL_WINDOW_SHOWN);
@@ -54,6 +55,8 @@ void init(Game *game) {
     game->gameObjects = (GameObjects *) calloc(2, sizeof(GameObjects));
     game->gameObjects->gameTitleBuffer = malloc(1024);
     game->gameObjects->universe = initUniverse();
+
+    return game;
 }
 
 /**
