@@ -1,11 +1,9 @@
-#pragma disable warning:
 #include <stdio.h>
 #include <stdlib.h>
 #include "model.h"
 
 Universe* initUniverse()
 {
-    printf("Game Initialisation\n");
 
     FILE* file = fopen("../config.txt", "r");
     if(file == NULL)
@@ -16,9 +14,10 @@ Universe* initUniverse()
 
     Universe* game = (Universe*)calloc(1, sizeof(Universe));
 
+
     //Take the window size from the config.txt file
     Coord WinSize;
-    char line[14] = {0};
+    char line[16] = {0};
     fscanf(file, "%s %d %d", line, &WinSize.x, &WinSize.y);
 
     //Take the start position from the config.txt file
@@ -29,12 +28,20 @@ Universe* initUniverse()
         free(game);
         return NULL;
     }
+    game->rectStart.x = game->start.x;
+    game->rectStart.y = game->start.y;
+    game->rectStart.w = 10;
+    game->rectStart.h = 10;
 
     game->ship.pos = game->start;
     game->ship.speed = 0;
     game->ship.angle = 0;
     game->ship.radius = 2;
     game->ship.vectors = NULL;
+    game->ship.rectShip.x = game->ship.pos.x;
+    game->ship.rectShip.y = game->ship.pos.y;
+    game->ship.rectShip.w = 10;
+    game->ship.rectShip.h = 10;
 
     fscanf(file, "%s %d %d", line, &game->end.x, &game->end.y);
     if(game->end.x < 0 || game->end.x > WinSize.x || game->end.y < 0 || game->end.y > WinSize.y)
@@ -43,9 +50,15 @@ Universe* initUniverse()
         free(game);
         return NULL;
     }
+    game->rectEnd.x = game->end.x;
+    game->rectEnd.y = game->end.y;
+    game->rectEnd.w = 10;
+    game->rectEnd.h = 10;
+
 
     int nbSolarSystem = 0;
     fscanf(file, "%s %d", line, &nbSolarSystem);
+
     if(nbSolarSystem < 0)
     {
         printf("Error in the config.txt file.\n");
@@ -83,7 +96,6 @@ Universe* initUniverse()
             free(game);
             return NULL;
         }
-
         game->solarSystem[i].nbPlanet = nbPlanet;
         for(int j = 0; j < nbPlanet; j++)
         {
@@ -102,9 +114,12 @@ Universe* initUniverse()
             else 
                 game->solarSystem[i].planets[j].pos.y = game->solarSystem[i].star.pos.y + game->solarSystem[i].planets[j].orbit;
         }
+
+
     }
 
     fclose(file);
+
     return game;
 }
 
@@ -122,7 +137,13 @@ void destroyGame(Universe* game)
 
 void universePrint(Universe* game)
 {
+    if(!game)
+    {
+        printf("Error while printing the game, the game is NULL.\n");
+        return;
+    }
     printf("\n\nGame :\n");
+
     for(int i = 0; i < game->nbSolarSystem; i++)
     {
         printf("\nSolar System %d :\n", i+1);
