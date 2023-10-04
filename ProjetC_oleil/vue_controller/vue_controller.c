@@ -1,51 +1,30 @@
 #include "vue_controller.h"
+#include "../model/model.h"
+#include <SDL2/SDL.h>
 #include <stdio.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
 
-void initColor(Color *color) {
-    SDL_Color *RED = malloc(sizeof(SDL_Color));
-    SDL_Color *GREEN = malloc(sizeof(SDL_Color));
-    SDL_Color *BLUE = malloc(sizeof(SDL_Color));
-    SDL_Color *WHITE = malloc(sizeof(SDL_Color));
-    SDL_Color *BLACK = malloc(sizeof(SDL_Color));
-    SDL_Color *YELLOW = malloc(sizeof(SDL_Color));
-
-    *RED = (SDL_Color) {255, 0, 0, 255};
-    *GREEN = (SDL_Color) {0, 255, 0, 255};
-    *BLUE = (SDL_Color) {0, 0, 255, 255};
-    *WHITE = (SDL_Color) {255, 255, 255, 255};
-    *BLACK = (SDL_Color) {0, 0, 0, 255};
-    *YELLOW = (SDL_Color) {255, 255, 0, 255};
-
-    color->RED = RED;
-    color->GREEN = GREEN;
-    color->BLUE = BLUE;
-    color->WHITE = WHITE;
-    color->BLACK = BLACK;
-    color->YELLOW = YELLOW;
-
-}
 /**
 * This function initialize some values related to the "Game" structure
 *
 * @return a game structure
 */
-void init(Game *game) {
+Game init() {
+    Game game;
     // Create the window with the specified size, if we add "SDL_WINDOW_RESIZABLE" flags, it will allow to resize the window during the game
-    game->window = SDL_CreateWindow("Game test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1024, 800,
-                                   SDL_WINDOW_SHOWN);
+    game.window = SDL_CreateWindow("Game test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1024, 800, SDL_WINDOW_SHOWN);
     // The renderer struct
-    game->render = SDL_CreateRenderer(game->window, -1, SDL_RENDERER_ACCELERATED);
+    game.render = SDL_CreateRenderer(game.window, -1, SDL_RENDERER_ACCELERATED);
     // Initialize the event structure
-    game->event = malloc(sizeof(SDL_Event));
+    game.event = malloc(sizeof(SDL_Event));
     // To allow the loop to run we initialize it to true
-    game->isGameRunning = true;
+    game.isGameRunning = true;
     // To not have a nullptr when we will want to use the gameObjects, we allocate memory for it
-    game->gameObjects = malloc(sizeof(GameObjects));
-    game->gameObjects->gameTitleBuffer = malloc(1024);
-
-    game->color = malloc(sizeof(Color));
-    initColor(game->color);
+    game.gameObjects = (GameObjects*)calloc(2, sizeof(GameObjects));
+    game.gameObjects->gameTitleBuffer = malloc(1024);
+    game.gameObjects->universe = initUniverse();
+    
+    return game;
 }
 
 /**
@@ -53,30 +32,31 @@ void init(Game *game) {
 * 
 * @param game The game structure that contains all necessary elements for allow the game to run
 */
-void update(Game *game) {
+void update(Game* game) {
 
     // Part to handle user interaction
-    while (SDL_PollEvent(game->event) != 0) {
+    while (SDL_PollEvent(game->event) != 0)
+    {
         switch (game->event->type) {
-            case SDL_KEYDOWN:
-                switch (game->event->key.keysym.sym) {
-                    case SDL_QUIT:
-                    case SDLK_ESCAPE:
-                    case SDLK_q:
-                        game->isGameRunning = false;
-                        break;
-                }
+        case SDL_KEYDOWN:
+            switch (game->event->key.keysym.sym) {
+            case SDL_QUIT:
+            case SDLK_ESCAPE:
+            case SDLK_q:
+                game->isGameRunning = false;
+                break;
+            }
 
         }
-
     }
+
     if (game->clock.currentMillis - game->clock.startMillis > 0) {
 
         // Replace "%f" with the FPS, the function change the value of the char gameTitleBuffer
         snprintf(game->gameObjects->gameTitleBuffer,
-                 sizeof(char[1024]),
-                 "ProjetC_oleil | FPS : %f | Lol",
-                 (1000.0 / (game->clock.currentMillis - game->clock.startMillis))
+            sizeof(char[1024]),
+            "ProjetC_oleil | FPS : %f | Lol",
+            (1000.0 / (game->clock.currentMillis - game->clock.startMillis))
         );
     }
 }
@@ -86,32 +66,37 @@ void update(Game *game) {
 *
 * @param game The game structure that contains all necessary elements for allow the game to run
 */
-void render(Game *game) {
-    printf("%d %d %d %d", game->color->RED->r, game->color->RED->g, game->color->RED->b, game->color->RED->a);
-
+void render(Game* game) {
     // Change the actual "pen" color for drawing something
     SDL_SetRenderDrawColor(game->render, 0, 0, 0, 0);
 
     //Clear all elements in the actual frame and set the backgrond in black.
     SDL_RenderClear(game->render);
 
+    // Pen color in white
+    SDL_SetRenderDrawColor(game->render, 255, 255, 255, 0);
+
+    // Draw the start square
+    SDL_RenderFillRect(game->render, &(game->gameObjects->universe->rectStart));
+
+    //Draw the end square
+    SDL_RenderFillRect(game->render, &(game->gameObjects->universe->rectEnd));
+
     // Pen color in red
-    SDL_SetRenderDrawColor(game->render, 0, 255, 0, 255);
-    // Create a rectangle (that will be red cause of the previous line)
-    SDL_RenderFillRect(game->render, game->gameObjects->rectangle);
-    SDL_SetRenderDrawColor(game->render, 255, 0, 0, 255);
+    SDL_SetRenderDrawColor(game->render, 255, 255, 255, 0);
+
+    // Draw the ship square
+    SDL_RenderFillRect(game->render, &(game->gameObjects->universe->ship.rectShip));
 
     // Change the window title to show game name, fps , etc.)
     SDL_SetWindowTitle(game->window, game->gameObjects->gameTitleBuffer);
 
-    drawPlanet(game->render, game->gameObjects->planet1, 1, game->color->GREEN);
-
-
-
-
+    Sint16 x = 50;
+    // Update the screen
+    Sint16 y = 50;
+    int result = filledCircleColor(game->render, 30, 30, 5, 0xFF0000FF);
     // Update the screen
     SDL_RenderPresent(game->render);
-
 
 
 }
@@ -121,16 +106,7 @@ void render(Game *game) {
 * 
 * @param game The game structure that contains all necessary elements for allow the game to run 
 */
-void run(Game *game) {
-
-
-    SDL_Rect rectangle = {300, 675, 10, 10}; // Definition of a test rectangle
-    // Set the rectangle as a gameObjects to update and render it
-    game->gameObjects->rectangle = &rectangle;
-    Coord planet1Coord = {200, 200};
-    Planet planet1 = {planet1Coord, 10, 10};
-    game->gameObjects->planet1 = &planet1;
-
+void run(Game *game){
 
     // Set the delta time to 60 FPS, so each update will be set each 16,7Ms
     game->clock.DELTA_TIME = 1000 / 60.0;
@@ -139,7 +115,8 @@ void run(Game *game) {
     game->clock.startMillis = SDL_GetTicks();
 
     // Game loop
-    while (game->isGameRunning) {
+    while (game->isGameRunning)
+    {
         // Get for how many time the game run
         game->clock.currentMillis = SDL_GetTicks();
 
@@ -159,18 +136,5 @@ void run(Game *game) {
 
     }
 
-}
-
-int drawPlanet(SDL_Renderer *render, Planet *planet, int filled, SDL_Color *color){
-    if (filled) {
-        return filledCircleRGBA(render, planet->pos.x,
-                                planet->pos.y,
-                                planet->radius, color->r, color->g, color->b, color->a);
-    }
-    else {
-        return circleRGBA(render, planet->pos.x,
-                           planet->pos.y,
-                           planet->radius, color->r, color->g, color->b, color->a);
-    }
 }
 
