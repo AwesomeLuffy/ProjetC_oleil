@@ -95,4 +95,6 @@ Universe* initUniverse();
 /// @param objectToRotateAround The star around which the planet rotate
 /// @param angle The angle of rotation
 void rotateObjectArroundAnother(Planet *objectCoordToRotate, Planet *objectToRotateAround, double angle);
+/// @brief Function that calculate an angle in radian from degrees
+/// @param degrees The angle in degrees
 float getAngleInRadian(int degrees);
