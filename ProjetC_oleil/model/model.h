@@ -1,12 +1,13 @@
 #pragma once
-# include <SDL2/SDL.h>
+#include <SDL2/SDL.h>
+#include <math.h>
 
 /// @brief Structure to store a coordinate
 /// @param x The x coordinate
 /// @param y The y coordinate
 typedef struct Coord_s {
-    int x;
-    int y;
+    float x;
+    float y;
 } Coord;
 
 /// @brief Structure to store a vector
@@ -88,3 +89,10 @@ void universePrint(Universe* game);
 /// @brief Function to initialize a game
 /// @return The game initialized
 Universe* initUniverse();
+
+/// @brief Function that calculate next coordinate for planet rotation
+/// @param objectCoordToRotate The planet to rotate
+/// @param objectToRotateAround The star around which the planet rotate
+/// @param angle The angle of rotation
+void rotateObjectArroundAnother(Planet *objectCoordToRotate, Planet *objectToRotateAround, double angle);
+float getAngleInRadian(int degrees);
