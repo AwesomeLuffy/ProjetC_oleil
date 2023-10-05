@@ -1,6 +1,6 @@
 #include "vue_controller.h"
-#include <stdio.h>
-#include <SDL2/SDL2_gfxPrimitives.h>
+#include <math.h>
+
 
 void initColor(Color *color) {
     SDL_Color *RED = malloc(sizeof(SDL_Color));
@@ -25,10 +25,6 @@ void initColor(Color *color) {
     color->YELLOW = YELLOW;
 
 }
-#include "../model/model.h"
-#include <SDL2/SDL.h>
-#include <stdio.h>
-#include <SDL2/SDL2_gfxPrimitives.h>
 
 /**
 * This function initialize some values related to the "Game" structure
@@ -90,6 +86,10 @@ void update(Game *game) {
                  (1000.0 / (game->clock.currentMillis - game->clock.startMillis))
         );
     }
+
+    // Update the pos of the second planet
+    rotateObjectArroundAnother(game->gameObjects->planet2, game->gameObjects->planet1, 1 * M_PI / 180);
+
 }
 
 /**
@@ -127,13 +127,10 @@ void render(Game *game) {
     // Change the window title to show game name, fps , etc.)
     SDL_SetWindowTitle(game->window, game->gameObjects->gameTitleBuffer);
 
-
-
     drawPlanet(game->render, game->gameObjects->planet1, true, game->color->YELLOW);
+    drawPlanet(game->render, game->gameObjects->planet2, true, game->color->BLUE);
     // Update the screen
     SDL_RenderPresent(game->render);
-
-
 
 }
 
@@ -148,9 +145,12 @@ void run(Game *game) {
     SDL_Rect rectangle = {300, 675, 10, 10}; // Definition of a test rectangle
     // Set the rectangle as a gameObjects to update and render it
     game->gameObjects->rectangle = &rectangle;
-    Coord planet1Coord = {200, 200};
+    Coord planet1Coord = {500, 500};
     Planet planet1 = {planet1Coord, 10, 10};
     game->gameObjects->planet1 = &planet1;
+    Coord planet2Coord = {500, 450};
+    Planet planet2 = {planet2Coord, 10, 10};
+    game->gameObjects->planet2 = &planet2;
 
     // Set the delta time to 60 FPS, so each update will be set each 16,7Ms
     game->clock.DELTA_TIME = 1000 / 60.0;
@@ -181,16 +181,15 @@ void run(Game *game) {
 
 }
 
-int drawPlanet(SDL_Renderer *render, Planet *planet, int filled, SDL_Color *color){
+int drawPlanet(SDL_Renderer *render, Planet *planet, int filled, SDL_Color *color) {
     if (filled) {
         return filledCircleRGBA(render, planet->pos.x,
                                 planet->pos.y,
                                 planet->radius, color->r, color->g, color->b, color->a);
-    }
-    else {
+    } else {
         return circleRGBA(render, planet->pos.x,
-                           planet->pos.y,
-                           planet->radius, color->r, color->g, color->b, color->a);
+                          planet->pos.y,
+                          planet->radius, color->r, color->g, color->b, color->a);
     }
 }
 

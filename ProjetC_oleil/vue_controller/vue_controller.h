@@ -6,6 +6,8 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 #include "../model/model.h"
+#include <stdio.h>
+#include <SDL2/SDL2_gfxPrimitives.h>
 
 typedef struct Color {
     SDL_Color* RED;
@@ -27,6 +29,7 @@ typedef struct GameContent_s {
     char* gameTitleBuffer;
     SDL_Rect* rectangle;
     Planet *planet1;
+    Planet *planet2;
     Universe* universe;
 } GameObjects;
 
