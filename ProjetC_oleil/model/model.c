@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "model.h"
+#define ANGLE 1 * M_PI / 180
 
 Universe* initUniverse()
 {
@@ -18,10 +19,10 @@ Universe* initUniverse()
     //Take the window size from the config.txt file
     Coord WinSize;
     char line[16] = {0};
-    fscanf(file, "%s %d %d", line, &WinSize.x, &WinSize.y);
+    fscanf(file, "%s %f %f", line, &WinSize.x, &WinSize.y);
 
     //Take the start position from the config.txt file
-    fscanf(file, "%s %d %d", line, &game->start.x, &game->start.y);
+    fscanf(file, "%s %f %f", line, &game->start.x, &game->start.y);
     if(game->start.x < 0 || game->start.x > WinSize.x || game->start.y < 0 || game->start.y > WinSize.y)
     {
         printf("Error in the config.txt file, closing program.\n");
@@ -43,7 +44,7 @@ Universe* initUniverse()
     game->ship.rectShip.w = 10;
     game->ship.rectShip.h = 10;
 
-    fscanf(file, "%s %d %d", line, &game->end.x, &game->end.y);
+    fscanf(file, "%s %f %f", line, &game->end.x, &game->end.y);
     if(game->end.x < 0 || game->end.x > WinSize.x || game->end.y < 0 || game->end.y > WinSize.y)
     {
         printf("Error in the config.txt file.\n");
@@ -77,7 +78,7 @@ Universe* initUniverse()
     game->nbSolarSystem = nbSolarSystem;
     for(int i = 0; i < nbSolarSystem; i++)
     {
-        fscanf(file, "%s %d %d", line, &game->solarSystem[i].star.pos.x, &game->solarSystem[i].star.pos.y);
+        fscanf(file, "%s %f %f", line, &game->solarSystem[i].star.pos.x, &game->solarSystem[i].star.pos.y);
         fscanf(file, "%s %d", line, &game->solarSystem[i].star.radius);
 
         int nbPlanet = 0;
@@ -147,7 +148,7 @@ void universePrint(Universe* game)
     for(int i = 0; i < game->nbSolarSystem; i++)
     {
         printf("\nSolar System %d :\n", i+1);
-        printf("Star pos : %d %d\n", game->solarSystem[i].star.pos.x, game->solarSystem[i].star.pos.y);
+        printf("Star pos : %f %f\n", game->solarSystem[i].star.pos.x, game->solarSystem[i].star.pos.y);
         printf("Star radius : %d\n", game->solarSystem[i].star.radius);
         printf("Nb Planet : %d\n", game->solarSystem[i].nbPlanet);
         for(int j = 0; j < game->solarSystem[i].nbPlanet; j++)
@@ -155,7 +156,7 @@ void universePrint(Universe* game)
             printf("  Planet %d :\n", j+1);
             printf("  Planet radius : %d\n", game->solarSystem[i].planets[j].radius);
             printf("  Planet orbit : %d\n", game->solarSystem[i].planets[j].orbit);
-            printf("  Planet pos : %d %d\n", game->solarSystem[i].planets[j].pos.x, game->solarSystem[i].planets[j].pos.y);
+            printf("  Planet pos : %f %f\n", game->solarSystem[i].planets[j].pos.x, game->solarSystem[i].planets[j].pos.y);
         }
     }
 }
@@ -170,3 +171,26 @@ void universePrint(Universe* game)
 //     printf("Done\n");
 //     return 0;
 // }
+
+/**
+ * @brief Rotate an object around another
+ * @param objectCoordToRotate The object to rotate
+ * @param objectToRotateAround The object to rotate around
+ * @param angle The angle of rotation
+ */
+void rotateObjectArroundAnother(Planet *objectCoordToRotate, Planet *objectToRotateAround, double angle) {
+    double distanceX = objectCoordToRotate->pos.x - objectToRotateAround->pos.x;
+    double distanceY = objectCoordToRotate->pos.y - objectToRotateAround->pos.y;
+    objectCoordToRotate->pos.x = distanceX * cos(angle) - distanceY * sin(angle) + objectToRotateAround->pos.x;
+    objectCoordToRotate->pos.y = distanceX * sin(angle) + distanceY * cos(angle) + objectToRotateAround->pos.y;
+}
+
+/**
+ * @brief Get the Angle In Radian object
+ * @param degrees
+ * @return the result of the conversion in radian
+ * Should use this function and store the result instead of do the conversion each time
+ */
+float getAngleInRadian(int degrees){
+    return degrees * (M_PI / 180);
+}
