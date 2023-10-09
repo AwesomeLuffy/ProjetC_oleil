@@ -1,4 +1,5 @@
 #include "vue_controller.h"
+#include <SDL2/SDL2_gfxPrimitives.h>
 #include <math.h>
 
 
@@ -115,11 +116,7 @@ void render(Game *game) {
     SDL_RenderFillRect(game->render, &(game->gameObjects->universe->rectEnd));
 
     // Pen color in red
-    SDL_SetRenderDrawColor(game->render, 0, 255, 0, 255);
-    // Create a rectangle (that will be red cause of the previous line)
-    SDL_RenderFillRect(game->render, game->gameObjects->rectangle);
-    SDL_SetRenderDrawColor(game->render, 255, 0, 0, 255);
-    SDL_SetRenderDrawColor(game->render, 255, 255, 255, 0);
+    SDL_SetRenderDrawColor(game->render, 0, 255, 0, 0);
 
     // Draw the ship square
     SDL_RenderFillRect(game->render, &(game->gameObjects->universe->ship.rectShip));
@@ -127,8 +124,12 @@ void render(Game *game) {
     // Change the window title to show game name, fps , etc.)
     SDL_SetWindowTitle(game->window, game->gameObjects->gameTitleBuffer);
 
-    drawPlanet(game->render, game->gameObjects->planet1, true, game->color->YELLOW);
-    drawPlanet(game->render, game->gameObjects->planet2, true, game->color->BLUE);
+    for(int i = 0; i < game->gameObjects->universe->nbSolarSystem; i++){
+        drawStar(game->render, game->gameObjects->universe->solarSystem[i].star, 1, game->color->YELLOW);
+        for(int j = 0; j < game->gameObjects->universe->solarSystem[i].nbPlanet; j++){
+            drawPlanet(game->render, game->gameObjects->universe->solarSystem[i].planets[j], 1, game->color->BLUE);
+        }
+    }
     // Update the screen
     SDL_RenderPresent(game->render);
 
@@ -181,15 +182,26 @@ void run(Game *game) {
 
 }
 
-int drawPlanet(SDL_Renderer *render, Planet *planet, int filled, SDL_Color *color) {
+int drawPlanet(SDL_Renderer *render, Planet planet, int filled, SDL_Color *color) {
     if (filled) {
-        return filledCircleRGBA(render, planet->pos.x,
-                                planet->pos.y,
-                                planet->radius, color->r, color->g, color->b, color->a);
+        return filledCircleRGBA(render, planet.pos.x,
+                                planet.pos.y,
+                                planet.radius, color->r, color->g, color->b, color->a);
     } else {
-        return circleRGBA(render, planet->pos.x,
-                          planet->pos.y,
-                          planet->radius, color->r, color->g, color->b, color->a);
+        return circleRGBA(render, planet.pos.x,
+                          planet.pos.y,
+                          planet.radius, color->r, color->g, color->b, color->a);
     }
 }
 
+int drawStar(SDL_Renderer *render, Star star, int filled, SDL_Color *color) {
+    if (filled) {
+        return filledCircleRGBA(render, star.pos.x,
+                                star.pos.y,
+                                star.radius, color->r, color->g, color->b, color->a);
+    } else {
+        return circleRGBA(render, star.pos.x,
+                          star.pos.y,
+                          star.radius, color->r, color->g, color->b, color->a);
+    }
+}
