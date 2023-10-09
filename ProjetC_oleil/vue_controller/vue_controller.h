@@ -86,4 +86,6 @@ void render(Game *game);
  * @param filled If the planet is filled or not
  * @param color The color of the planet (Use the struct Color for call it by name)
  */
-int drawPlanet(SDL_Renderer *render, Planet *planet, int filled, SDL_Color *color);
+int drawPlanet(SDL_Renderer *render, Planet planet, int filled, SDL_Color *color);
+
+int drawStar(SDL_Renderer *render, Star star, int filled, SDL_Color *color);
