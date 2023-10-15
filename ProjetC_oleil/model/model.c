@@ -182,13 +182,13 @@ void universePrint(Universe* game)
  * @param objectToRotateAround The object to rotate around
  * @param angle The angle of rotation
  */
-void rotateObjectArroundAnother(Planet *objectCoordToRotate, Star *objectToRotateAround, double angle) {
+void rotateObjectArroundAnother(Planet *objectCoordToRotate, Star *objectToRotateAround, float *angle) {
     static double distanceX;
     static double distanceY;
     distanceX = objectCoordToRotate->pos.x - objectToRotateAround->pos.x;
     distanceY = objectCoordToRotate->pos.y - objectToRotateAround->pos.y;
-    objectCoordToRotate->pos.x = distanceX * cos(angle) - distanceY * sin(angle) + objectToRotateAround->pos.x;
-    objectCoordToRotate->pos.y = distanceX * sin(angle) + distanceY * cos(angle) + objectToRotateAround->pos.y;
+    objectCoordToRotate->pos.x = distanceX * cos(*angle) - distanceY * sin(*angle) + objectToRotateAround->pos.x;
+    objectCoordToRotate->pos.y = distanceX * sin(*angle) + distanceY * cos(*angle) + objectToRotateAround->pos.y;
 }
 
 /**
@@ -198,5 +198,5 @@ void rotateObjectArroundAnother(Planet *objectCoordToRotate, Star *objectToRotat
  * Should use this function and store the result instead of do the conversion each time
  */
 float getAngleInRadian(int orbit){
-    return ((orbit / 100) * (M_PI / 180)) / COEFFICIENT_SLOWDOWN;
+    return ((orbit / 10) * (M_PI / 180)) / COEFFICIENT_SLOWDOWN;
 }
