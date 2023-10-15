@@ -2,10 +2,8 @@
 #include <stdlib.h>
 #include "model.h"
 
-// The coefficient to slow down the planet
-#define COEFFICIENT_SLOWDOWN 5
 // This coefficient is to reduce the orbit speed of the planet cause if we set 130 for example it's too big
-#define COEFFICIENT_PLANET_ORBIT_SLOWDOWN 10
+#define COEFFICIENT_PLANET_SPEED_SLOWDOWN 60
 Universe* initUniverse()
 {
 
@@ -118,6 +116,8 @@ Universe* initUniverse()
                 game->solarSystem[i].planets[j].pos.y = game->solarSystem[i].star.pos.y - game->solarSystem[i].planets[j].orbit;
             else 
                 game->solarSystem[i].planets[j].pos.y = game->solarSystem[i].star.pos.y + game->solarSystem[i].planets[j].orbit;
+            game->solarSystem[i].planets[j].distance_to_star = game->solarSystem[i].planets[j].pos.y - game->solarSystem[i].star.pos.y;
+
         }
 
 
@@ -183,10 +183,15 @@ void universePrint(Universe* game)
  * @param angle The angle of rotation
  */
 void rotateObjectArroundAnother(Planet *objectCoordToRotate, Star *objectToRotateAround, float *angle) {
+    // To not recreate the variable each time
     static double distanceX;
     static double distanceY;
+
+    // Get the distance between the planet and the star
     distanceX = objectCoordToRotate->pos.x - objectToRotateAround->pos.x;
     distanceY = objectCoordToRotate->pos.y - objectToRotateAround->pos.y;
+
+    // Rotate the planet arround the star
     objectCoordToRotate->pos.x = distanceX * cos(*angle) - distanceY * sin(*angle) + objectToRotateAround->pos.x;
     objectCoordToRotate->pos.y = distanceX * sin(*angle) + distanceY * cos(*angle) + objectToRotateAround->pos.y;
 }
@@ -198,5 +203,5 @@ void rotateObjectArroundAnother(Planet *objectCoordToRotate, Star *objectToRotat
  * Should use this function and store the result instead of do the conversion each time
  */
 float getAngleInRadian(int orbit){
-    return ((orbit / 10) * (M_PI / 180)) / COEFFICIENT_SLOWDOWN;
+    return (orbit * (M_PI / 180) / COEFFICIENT_PLANET_SPEED_SLOWDOWN);
 }
