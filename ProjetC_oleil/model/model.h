@@ -26,6 +26,7 @@ typedef struct Planet_s {
     Coord pos;
     int radius;
     int orbit;
+    float angle;
 } Planet;
 
 /// @brief Structure to store a star
@@ -94,7 +95,7 @@ Universe* initUniverse();
 /// @param objectCoordToRotate The planet to rotate
 /// @param objectToRotateAround The star around which the planet rotate
 /// @param angle The angle of rotation
-void rotateObjectArroundAnother(Planet *objectCoordToRotate, Planet *objectToRotateAround, double angle);
+void rotateObjectArroundAnother(Planet *objectCoordToRotate, Star *objectToRotateAround, double angle);
 /// @brief Function that calculate an angle in radian from degrees
 /// @param degrees The angle in degrees
 float getAngleInRadian(int degrees);

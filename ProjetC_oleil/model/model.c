@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "model.h"
-#define ANGLE 1 * M_PI / 180
 
+// The coefficient to slow down the planet
+#define COEFFICIENT_SLOWDOWN 5
+// This coefficient is to reduce the orbit speed of the planet cause if we set 130 for example it's too big
+#define COEFFICIENT_PLANET_ORBIT_SLOWDOWN 10
 Universe* initUniverse()
 {
 
@@ -109,6 +112,7 @@ Universe* initUniverse()
             }
 
             fscanf(file, "%s %d", line, &game->solarSystem[i].planets[j].orbit);
+            game->solarSystem[i].planets[j].angle = getAngleInRadian(game->solarSystem[i].planets[j].orbit);
             game->solarSystem[i].planets[j].pos.x = game->solarSystem[i].star.pos.x;
             if(game->solarSystem[i].planets[j].orbit < 0)
                 game->solarSystem[i].planets[j].pos.y = game->solarSystem[i].star.pos.y - game->solarSystem[i].planets[j].orbit;
@@ -178,9 +182,11 @@ void universePrint(Universe* game)
  * @param objectToRotateAround The object to rotate around
  * @param angle The angle of rotation
  */
-void rotateObjectArroundAnother(Planet *objectCoordToRotate, Planet *objectToRotateAround, double angle) {
-    double distanceX = objectCoordToRotate->pos.x - objectToRotateAround->pos.x;
-    double distanceY = objectCoordToRotate->pos.y - objectToRotateAround->pos.y;
+void rotateObjectArroundAnother(Planet *objectCoordToRotate, Star *objectToRotateAround, double angle) {
+    static double distanceX;
+    static double distanceY;
+    distanceX = objectCoordToRotate->pos.x - objectToRotateAround->pos.x;
+    distanceY = objectCoordToRotate->pos.y - objectToRotateAround->pos.y;
     objectCoordToRotate->pos.x = distanceX * cos(angle) - distanceY * sin(angle) + objectToRotateAround->pos.x;
     objectCoordToRotate->pos.y = distanceX * sin(angle) + distanceY * cos(angle) + objectToRotateAround->pos.y;
 }
@@ -191,6 +197,6 @@ void rotateObjectArroundAnother(Planet *objectCoordToRotate, Planet *objectToRot
  * @return the result of the conversion in radian
  * Should use this function and store the result instead of do the conversion each time
  */
-float getAngleInRadian(int degrees){
-    return degrees * (M_PI / 180);
+float getAngleInRadian(int orbit){
+    return ((orbit / 100) * (M_PI / 180)) / COEFFICIENT_SLOWDOWN;
 }
