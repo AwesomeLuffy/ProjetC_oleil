@@ -27,6 +27,7 @@ typedef struct Planet_s {
     int radius;
     int orbit;
     float angle;
+    float distance_to_star;
 } Planet;
 
 /// @brief Structure to store a star
