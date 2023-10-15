@@ -20,6 +20,7 @@ typedef struct Color {
     SDL_Color* BLACK;
     SDL_Color* YELLOW;
     SDL_Color* CYAN;
+    SDL_Color* HALF_WHITE;
 } Color;
 /**
  * This structure contains all the necessary values for the clock and time managment
