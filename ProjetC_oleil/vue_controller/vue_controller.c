@@ -11,6 +11,7 @@ void initColor(Color *color) {
     SDL_Color *WHITE = malloc(sizeof(SDL_Color));
     SDL_Color *BLACK = malloc(sizeof(SDL_Color));
     SDL_Color *YELLOW = malloc(sizeof(SDL_Color));
+    SDL_Color *HALF_WHITE = malloc(sizeof(SDL_Color));
 
     *RED = (SDL_Color) {255, 0, 0, 255};
     *GREEN = (SDL_Color) {0, 255, 0, 255};
@@ -18,6 +19,7 @@ void initColor(Color *color) {
     *WHITE = (SDL_Color) {255, 255, 255, 255};
     *BLACK = (SDL_Color) {0, 0, 0, 255};
     *YELLOW = (SDL_Color) {255, 255, 0, 255};
+    *HALF_WHITE = (SDL_Color) {255, 255, 255, 128};
 
     color->RED = RED;
     color->GREEN = GREEN;
@@ -25,6 +27,7 @@ void initColor(Color *color) {
     color->WHITE = WHITE;
     color->BLACK = BLACK;
     color->YELLOW = YELLOW;
+    color->HALF_WHITE = HALF_WHITE;
 
 }
 
@@ -109,6 +112,7 @@ void update(Game *game) {
 * @param game The game structure that contains all necessary elements for allow the game to run
 */
 void render(Game *game) {
+    static Planet actualPlanetLine;
 
     // Change the actual "pen" color for drawing something
     SDL_SetRenderDrawColor(game->render, 0, 0, 0, 0);
@@ -128,8 +132,8 @@ void render(Game *game) {
     // Pen color in red
     SDL_SetRenderDrawColor(game->render, 0, 255, 0, 0);
 
-    // Draw the ship square
     SDL_RenderFillRect(game->render, &(game->gameObjects->universe->ship.rectShip));
+
 
     // Change the window title to show game name, fps , etc.)
     SDL_SetWindowTitle(game->window, game->gameObjects->gameTitleBuffer);
@@ -138,8 +142,16 @@ void render(Game *game) {
         drawStar(game->render, game->gameObjects->universe->solarSystem[i].star, 1, game->color->YELLOW);
         for (int j = 0; j < game->gameObjects->universe->solarSystem[i].nbPlanet; j++) {
             drawPlanet(game->render, game->gameObjects->universe->solarSystem[i].planets[j], 1, game->color->BLUE);
+
+            actualPlanetLine = game->gameObjects->universe->solarSystem[i].planets[j];
+            actualPlanetLine.pos.x = game->gameObjects->universe->solarSystem[i].star.pos.x;
+            actualPlanetLine.pos.y = game->gameObjects->universe->solarSystem[i].star.pos.y;
+            actualPlanetLine.radius = game->gameObjects->universe->solarSystem[i].planets[j].distance_to_star;
+            drawPlanet(game->render, actualPlanetLine, 0, game->color->HALF_WHITE);
         }
     }
+
+    // Draw the ship square
     // Update the screen
     SDL_RenderPresent(game->render);
 
