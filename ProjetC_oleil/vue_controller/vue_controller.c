@@ -87,15 +87,19 @@ void update(Game *game) {
                  "ProjetC_oleil | FPS : %f | Lol",
                  (1000.0 / (game->clock.currentMillis - game->clock.startMillis))
         );
+        for (int i = 0; i < game->gameObjects->universe->nbSolarSystem; i++) {
+            for (int j = 0; j < game->gameObjects->universe->solarSystem[i].nbPlanet; j++) {
+                rotateObjectArroundAnother(&game->gameObjects->universe->solarSystem[i].planets[j],
+                                           &game->gameObjects->universe->solarSystem[i].star,
+                                           &game->gameObjects->universe->solarSystem[i].planets[j].angle);
+            }
+        }
+
+
     }
 
-    for (int i = 0; i < game->gameObjects->universe->nbSolarSystem; i++) {
-        for (int j = 0; j < game->gameObjects->universe->solarSystem[i].nbPlanet; j++) {
-            rotateObjectArroundAnother(&game->gameObjects->universe->solarSystem[i].planets[j],
-                                       &game->gameObjects->universe->solarSystem[i].star,
-                                       game->gameObjects->universe->solarSystem[i].planets[j].angle);
-        }
-    }
+
+
 
 }
 
@@ -183,6 +187,9 @@ void run(Game *game) {
             game->clock.startMillis = SDL_GetTicks();
 
         }
+
+        // This line allow to not use 100% of the core cause each ms the loop will be executed too many times and the game will be laggy
+        SDL_Delay(1);
 
     }
 
