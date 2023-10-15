@@ -3,6 +3,7 @@
 #include <math.h>
 
 
+
 void initColor(Color *color) {
     SDL_Color *RED = malloc(sizeof(SDL_Color));
     SDL_Color *GREEN = malloc(sizeof(SDL_Color));
@@ -32,7 +33,7 @@ void initColor(Color *color) {
 *
 * @return a game structure
 */
-Game* init() {
+Game *init() {
     Game *game = malloc(sizeof(Game));
     // Create the window with the specified size, if we add "SDL_WINDOW_RESIZABLE" flags, it will allow to resize the window during the game
     game->window = SDL_CreateWindow("Game test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1024, 800,
@@ -88,8 +89,13 @@ void update(Game *game) {
         );
     }
 
-    // Update the pos of the second planet
-    rotateObjectArroundAnother(game->gameObjects->planet2, game->gameObjects->planet1, 1 * M_PI / 180);
+    for (int i = 0; i < game->gameObjects->universe->nbSolarSystem; i++) {
+        for (int j = 0; j < game->gameObjects->universe->solarSystem[i].nbPlanet; j++) {
+            rotateObjectArroundAnother(&game->gameObjects->universe->solarSystem[i].planets[j],
+                                       &game->gameObjects->universe->solarSystem[i].star,
+                                       game->gameObjects->universe->solarSystem[i].planets[j].angle);
+        }
+    }
 
 }
 
@@ -124,9 +130,9 @@ void render(Game *game) {
     // Change the window title to show game name, fps , etc.)
     SDL_SetWindowTitle(game->window, game->gameObjects->gameTitleBuffer);
 
-    for(int i = 0; i < game->gameObjects->universe->nbSolarSystem; i++){
+    for (int i = 0; i < game->gameObjects->universe->nbSolarSystem; i++) {
         drawStar(game->render, game->gameObjects->universe->solarSystem[i].star, 1, game->color->YELLOW);
-        for(int j = 0; j < game->gameObjects->universe->solarSystem[i].nbPlanet; j++){
+        for (int j = 0; j < game->gameObjects->universe->solarSystem[i].nbPlanet; j++) {
             drawPlanet(game->render, game->gameObjects->universe->solarSystem[i].planets[j], 1, game->color->BLUE);
         }
     }
