@@ -121,7 +121,7 @@ void render(Game *game) {
     SDL_RenderClear(game->render);
 
     // Pen color in white
-    SDL_SetRenderDrawColor(game->render, 255, 255, 255, 0);
+    SDL_SetRenderDrawColor(game->render, 255, 255, 255, 255);
 
     // Draw the start square
     SDL_RenderFillRect(game->render, &(game->gameObjects->universe->rectStart));
@@ -129,10 +129,13 @@ void render(Game *game) {
     //Draw the end square
     SDL_RenderFillRect(game->render, &(game->gameObjects->universe->rectEnd));
 
-    // Pen color in red
-    SDL_SetRenderDrawColor(game->render, 0, 255, 0, 0);
 
+    // Pen color in red
+    SDL_SetRenderDrawColor(game->render, 0, 255, 0, 255);
+
+    // Draw the ship square
     SDL_RenderFillRect(game->render, &(game->gameObjects->universe->ship.rectShip));
+
 
 
     // Change the window title to show game name, fps , etc.)
@@ -151,9 +154,10 @@ void render(Game *game) {
         }
     }
 
-    // Draw the ship square
     // Update the screen
+
     SDL_RenderPresent(game->render);
+
 
 }
 
