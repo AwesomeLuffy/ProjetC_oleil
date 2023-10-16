@@ -110,7 +110,11 @@ Universe* initUniverse()
             }
 
             fscanf(file, "%s %d", line, &game->solarSystem[i].planets[j].orbit);
-            game->solarSystem[i].planets[j].angle = getAngleInRadian(game->solarSystem[i].planets[j].orbit);
+
+            game->solarSystem[i].planets[j].angle = getAngleInRadian(game->solarSystem[i].planets[j].radius);
+
+            printf("Angle : %f\n", game->solarSystem[i].planets[j].angle);
+
             game->solarSystem[i].planets[j].pos.x = game->solarSystem[i].star.pos.x;
             if(game->solarSystem[i].planets[j].orbit < 0)
                 game->solarSystem[i].planets[j].pos.y = game->solarSystem[i].star.pos.y - game->solarSystem[i].planets[j].orbit;
@@ -202,6 +206,6 @@ void rotateObjectArroundAnother(Planet *objectCoordToRotate, Star *objectToRotat
  * @return the result of the conversion in radian
  * Should use this function and store the result instead of do the conversion each time
  */
-float getAngleInRadian(int orbit){
-    return (orbit * (M_PI / 180) / COEFFICIENT_PLANET_SPEED_SLOWDOWN);
+float getAngleInRadian(int radius){
+    return 4 * M_PI / (60 * radius);
 }
