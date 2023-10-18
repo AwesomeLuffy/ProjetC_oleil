@@ -37,15 +37,14 @@ void initColor(Color *color) {
 
 Game *init() {
     Game *game = malloc(sizeof(Game));
-    // Create the window with the specified size, if we add "SDL_WINDOW_RESIZABLE" flags, it will allow to resize the window during the game
-    game->window = SDL_CreateWindow("Game test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1024, 800,
-                                    SDL_WINDOW_SHOWN);
-    // The renderer struct
-    game->render = SDL_CreateRenderer(game->window, -1, SDL_RENDERER_ACCELERATED);
+
     // Initialize the event structure
     game->event = malloc(sizeof(SDL_Event));
     // To allow the loop to run we initialize it to true
     game->isGameRunning = true;
+
+    // Set the score at 0
+    game->gameObjects->score = 0;
     // To not have a nullptr when we will want to use the gameObjects, we allocate memory for it
     game->gameObjects = malloc(sizeof(GameObjects));
     game->gameObjects->gameTitleBuffer = malloc(1024);
@@ -59,6 +58,13 @@ Game *init() {
     // Get the windows size and set into the game structure.
     game->WINDOW_LENGHT = game->gameObjects->universe->WINSIZE.x;
     game->WINDOW_HEIGHT = game->gameObjects->universe->WINSIZE.y;
+
+    // Create the window with the specified size, if we add "SDL_WINDOW_RESIZABLE" flags, it will allow to resize the window during the game
+    game->window = SDL_CreateWindow("ProjetC_oleil", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                                    game->WINDOW_LENGHT, game->WINDOW_HEIGHT,
+                                    SDL_WINDOW_SHOWN);
+    // The renderer struct
+    game->render = SDL_CreateRenderer(game->window, -1, SDL_RENDERER_ACCELERATED);
 
 
     return game;
@@ -98,6 +104,8 @@ void update(Game *game) {
 
         }
     }
+
+    game->gameObjects->score++;
     ///////////////////////
     // Change the title of the window with FPS and Score
     if (game->clock.currentMillis - game->clock.startMillis > 0) {
@@ -105,8 +113,9 @@ void update(Game *game) {
         // Replace "%f" with the FPS, the function change the value of the char gameTitleBuffer
         snprintf(game->gameObjects->gameTitleBuffer,
                  256,
-                 "ProjetC_oleil | FPS : %.02f | Score : 0",
-                 (1000.0 / (game->clock.currentMillis - game->clock.startMillis))
+                 "ProjetC_oleil | FPS : %.02f | Score : %d",
+                 (1000.0 / (game->clock.currentMillis - game->clock.startMillis)),
+                    game->gameObjects->score
         );
     }
 

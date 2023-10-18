@@ -36,6 +36,7 @@ typedef struct Clock_s {
 typedef struct GameContent_s {
     char* gameTitleBuffer; // The buffer that will contains the title of the game with FPS and Score
     Universe* universe; // The universe (solar system, ship, etc...)
+    int score; // The score of the player
 } GameObjects;
 
 /**
