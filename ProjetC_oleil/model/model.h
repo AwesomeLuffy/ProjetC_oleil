@@ -121,14 +121,10 @@ float gravityStar(Ship ship, Star star);
 /// @param
 float gravityPlanet(Ship ship, Planet planet);
 
-/// @brief Function to add vectors from ship and a Planet 1 and a Planet 2
-/// @param ship The ship
-/// @param planet1 The first planet
-/// @param planet2 The second planet
-/// This function try to return a vector that represent the sum of the vectors from the ship and the
-/// two planets and the vector will be nearest the planet with the greatest force
+/**
+ * @brief Function calculate gravity between a Ship and a Planet
+ * @param ship The ship
+ * @param planet The planet
+ * @return A vector with the force and the angle
+ */
 Vector additionVectorWithGravityAndAngle(Ship ship, Planet planet);
-/// @brief Function to add a additionate a list of vector to have one final vector.
-/// @param vectors The list of vectors
-/// @param size The size of the list
-Vector vectorSum(Vector vectors[], int size);

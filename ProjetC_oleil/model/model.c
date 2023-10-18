@@ -4,6 +4,8 @@
 
 // This coefficient is to reduce the orbit speed of the planet cause if we set 130 for example it's too big
 #define COEFFICIENT_PLANET_SPEED_SLOWDOWN 60
+#define GRAVITY_CONSTANT 1000
+#define MASS_COEFFICIENT 200
 
 Universe *initUniverse() {
 
@@ -167,12 +169,6 @@ void universePrint(Universe *game) {
 //     return 0;
 // }
 
-/**
- * @brief Rotate an object around another
- * @param objectCoordToRotate The object to rotate
- * @param objectToRotateAround The object to rotate around
- * @param angle The angle of rotation
- */
 void rotateObjectArroundAnother(Planet *objectCoordToRotate, Star *objectToRotateAround, float *angle) {
     // To not recreate the variable each time
     static double distanceX;
@@ -187,12 +183,6 @@ void rotateObjectArroundAnother(Planet *objectCoordToRotate, Star *objectToRotat
     objectCoordToRotate->pos.y = distanceX * sin(*angle) + distanceY * cos(*angle) + objectToRotateAround->pos.y;
 }
 
-/**
- * @brief Same as rotateObjectArroundAnother but for a point
- * @param objectCoordToRotate
- * @param objectToRotateAround
- * @param angle
- */
 void rotatePoint(Coord* objectCoordToRotate, SDL_FRect *objectToRotateAround, float angle) {
     // To not recreate the variable each time
     static double distanceX;
@@ -207,59 +197,43 @@ void rotatePoint(Coord* objectCoordToRotate, SDL_FRect *objectToRotateAround, fl
     objectCoordToRotate->y = distanceX * sin(angle) + distanceY * cos(angle) + objectToRotateAround->y;
 }
 
-/**
- * @brief Get the Angle In Radian object
- * @param degrees
- * @return the result of the conversion in radian
- * Should use this function and store the result instead of do the conversion each time
- */
 float getAngleInRadian(int radius) {
     return 4 * M_PI / (60 * radius);
 }
 
-float gravityStar(Ship ship, Star star) {
-    return 2000.0 * (star.radius / (pow(ship.pos.x - star.pos.x, 2) + pow(ship.pos.y - star.pos.y, 2)));
-}
-
-float gravityPlanet(Ship ship, Planet planet) {
-    return 2000.0 * (planet.radius / (pow(ship.pos.x - planet.pos.x, 2) + pow(ship.pos.y - planet.pos.y, 2)));
-}
+//float gravityStar(Ship ship, Star star) {
+//    return 2000.0 * (star.radius / (pow(ship.pos.x - star.pos.x, 2) + pow(ship.pos.y - star.pos.y, 2)));
+//}
+//
+//float gravityPlanet(Ship ship, Planet planet) {
+//    return 2000.0 * (planet.radius / (pow(ship.pos.x - planet.pos.x, 2) + pow(ship.pos.y - planet.pos.y, 2)));
+//}
 
 Vector additionVectorWithGravityAndAngle(Ship ship, Planet planet) {
-    Vector result;
+    static Vector resultVector;
+    // Caculate distance between the ship and the planet
+    float distancePlanetShipX = planet.pos.x - ship.pos.x;
+    float distancePlanetShipY = planet.pos.y - ship.pos.y;
+    float distance = sqrt(pow(distancePlanetShipX, 2) + pow(distancePlanetShipY, 2));
 
-    // Calcul de la distance entre le vaisseau et la planète
-    float dx = planet.pos.x - ship.pos.x;
-    float dy = planet.pos.y - ship.pos.y;
-    float distance = sqrt(dx * dx + dy * dy);
+    // Set the planet mass as the planet radius
+    float planetMass = planet.radius * MASS_COEFFICIENT;
 
-    // Calcul de la masse de la planète en utilisant son rayon
-    float planetMass = (4.0 / 3.0) * M_PI * pow(planet.radius, 3);
+    // Calculate the graivity force
+    float gravityForce = GRAVITY_CONSTANT * planetMass / pow(distance, 2);
 
-    // Calcul de la force de gravité
-    float gravitationalForce = 1000 * (1.0 * planetMass) / (distance * distance);
+    // Get the angle between the ship and the planet
+    float angle = atan2(distancePlanetShipX, distancePlanetShipY);
 
-    // Calcul de l'angle du vecteur
-    float angle = atan2(dy, dx);
+    // Apply gravity force to the ship
+    float forceX = gravityForce * cos(angle);
+    float forceY = gravityForce * sin(angle);
 
-    // Calcul des composantes x et y du vecteur de gravité
-    float forceX = gravitationalForce * cos(angle);
-    float forceY = gravitationalForce * sin(angle);
 
-    // Remplissage du résultat
-    result.force = gravitationalForce;
-    result.angle = angle;
-    result.vector.x = forceX;
-    result.vector.y = forceY;
+    resultVector.force = gravityForce;
+    resultVector.angle = angle;
+    resultVector.vector.x = forceX;
+    resultVector.vector.y = forceY;
 
-    return result;
-}
-
-Vector vectorSum(Vector vectors[], int size){
-    Vector finalVector = {0, 0, 0, 0};
-    for (int i = 0; i < size; i++) {
-        finalVector.vector.x += vectors[i].vector.x / ((vectors[i].force == 0) ? 1 : vectors[i].force * .1);
-        finalVector.vector.y += vectors[i].vector.y / ((vectors[i].force == 0) ? 1 : vectors[i].force * .1);
-    }
-    return finalVector;
+    return resultVector;
 }

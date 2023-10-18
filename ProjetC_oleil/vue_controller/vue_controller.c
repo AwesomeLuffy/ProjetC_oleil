@@ -2,6 +2,11 @@
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include <math.h>
 
+#define VECTOR_LENGTH 30
+#define FRAMERATE 60.0
+#define SHIP_SPEED 8
+#define GRAVITY_COEFFICIENT 0.07
+#define SHIP_VECTOR_DIRECTION_COEFFICIENT 0.1
 
 void initColor(Color *color) {
     SDL_Color *RED = malloc(sizeof(SDL_Color));
@@ -30,11 +35,6 @@ void initColor(Color *color) {
 
 }
 
-/**
-* This function initialize some values related to the "Game" structure
-*
-* @return a game structure
-*/
 Game *init() {
     Game *game = malloc(sizeof(Game));
     // Create the window with the specified size, if we add "SDL_WINDOW_RESIZABLE" flags, it will allow to resize the window during the game
@@ -56,6 +56,7 @@ Game *init() {
     game->gameObjects->gameTitleBuffer = malloc(1024);
     game->gameObjects->universe = initUniverse();
 
+    // Get the windows size and set into the game structure.
     game->WINDOW_LENGHT = game->gameObjects->universe->WINSIZE.x;
     game->WINDOW_HEIGHT = game->gameObjects->universe->WINSIZE.y;
 
@@ -63,17 +64,8 @@ Game *init() {
     return game;
 }
 
-/**
-* This function is called before "the render function" each 16.7MS(60FPS), all content of the game have to be updated here(like for movement, collisions, etc.)
-* 
-* @param game The game structure that contains all necessary elements for allow the game to run
-*/
 void update(Game *game) {
-    static Vector vector[100];
-    static int planetCount = 0;
-    static Vector vectorPlanetSum;
-    static float lenght;
-
+    // This vector will be the sum of all gravity vector from all planets we will apply to the ship
     static Vector totalGravityShipVector;
     totalGravityShipVector.vector.x = 0;
     totalGravityShipVector.vector.y = 0;
@@ -91,10 +83,16 @@ void update(Game *game) {
                         // Rotate the ship to the left
                     case SDLK_LEFT:
                         game->gameObjects->universe->ship.angle -= .2;
+                        if (game->gameObjects->universe->ship.angle < 0) {
+                            game->gameObjects->universe->ship.angle = 2 * M_PI;
+                        }
                         break;
                         // Rotate the ship to the right
                     case SDLK_RIGHT:
                         game->gameObjects->universe->ship.angle += .2;
+                        if (game->gameObjects->universe->ship.angle > 2 * M_PI) {
+                            game->gameObjects->universe->ship.angle = 0;
+                        }
                         break;
                 }
 
@@ -106,80 +104,81 @@ void update(Game *game) {
 
         // Replace "%f" with the FPS, the function change the value of the char gameTitleBuffer
         snprintf(game->gameObjects->gameTitleBuffer,
-                 sizeof(char[1024]),
-                 "ProjetC_oleil | FPS : %.02f | Lol",
+                 256,
+                 "ProjetC_oleil | FPS : %.02f | Score : 0",
                  (1000.0 / (game->clock.currentMillis - game->clock.startMillis))
         );
     }
 
     ///////////////////////
-    // Part that handle the rotation of the planet arround Star
-        planetCount = 0;
-        for (int i = 0; i < game->gameObjects->universe->nbSolarSystem; i++) {
-            for (int j = 0; j < game->gameObjects->universe->solarSystem[i].nbPlanet; j++) {
-                rotateObjectArroundAnother(&game->gameObjects->universe->solarSystem[i].planets[j],
-                                           &game->gameObjects->universe->solarSystem[i].star,
-                                           &game->gameObjects->universe->solarSystem[i].planets[j].angle);
-                if(checkCollision(&game->gameObjects->universe->ship, &game->gameObjects->universe->solarSystem[i].planets[j])){
-                    printf("test");
-                    game->isGameRunning = false;
-                    return;
-                }
-                if (j + 1 <= game->gameObjects->universe->solarSystem[i].nbPlanet) {
-                    Vector gravityShipVector = additionVectorWithGravityAndAngle(game->gameObjects->universe->ship,
-                                                                                 game->gameObjects->universe->solarSystem[i].planets[j]);
-                    totalGravityShipVector.vector.x += gravityShipVector.vector.x;
-                    totalGravityShipVector.vector.y += gravityShipVector.vector.y;
+    // Part that handle all the interactions between the ship and the planets
+    for (int i = 0; i < game->gameObjects->universe->nbSolarSystem; i++) {
+        for (int j = 0; j < game->gameObjects->universe->solarSystem[i].nbPlanet; j++) {
+            // Rotate the planet around the star
+            rotateObjectArroundAnother(&game->gameObjects->universe->solarSystem[i].planets[j],
+                                       &game->gameObjects->universe->solarSystem[i].star,
+                                       &game->gameObjects->universe->solarSystem[i].planets[j].angle);
 
-                    planetCount++;
-                }
+            // Check if the ship is in collision with the planet
+            if (checkCollision(&game->gameObjects->universe->ship,
+                               &game->gameObjects->universe->solarSystem[i].planets[j])) {
+                // If the ship is in collision with the planet, we stop the game
+                game->isGameRunning = false;
+                return;
+            }
+            // If the planet is the last of the solar system, we rotate the ship around the planet
+            // The j+1 is to avoid to check an undefined index
+            if (j + 1 <= game->gameObjects->universe->solarSystem[i].nbPlanet) {
+                Vector gravityShipVector = additionVectorWithGravityAndAngle(game->gameObjects->universe->ship,
+                                                                             game->gameObjects->universe->solarSystem[i].planets[j]);
+                totalGravityShipVector.vector.x += gravityShipVector.vector.x;
+                totalGravityShipVector.vector.y += gravityShipVector.vector.y;
 
             }
-        }
-
-        // This part handle the movement of the ship
-        if (planetCount != 0) {
-
-            game->gameObjects->universe->ship.rectShip.x += totalGravityShipVector.vector.x * 0.07;
-            game->gameObjects->universe->ship.rectShip.y += totalGravityShipVector.vector.y * 0.07;
-
-            game->gameObjects->universe->ship.directionGravityVector = totalGravityShipVector;
-
-
-
 
         }
+    }
+
+    // This part handle and apply the movement of the ship
+
+    // First we apply the gravity vector to the ship, the coefficient is here to have coherent value
+    // And not have the ship move too fast
+    game->gameObjects->universe->ship.rectShip.x += totalGravityShipVector.vector.x * GRAVITY_COEFFICIENT;
+    game->gameObjects->universe->ship.rectShip.y += totalGravityShipVector.vector.y * GRAVITY_COEFFICIENT;
+
+    // We store it to draw the vector in the render part
+    game->gameObjects->universe->ship.directionGravityVector = totalGravityShipVector;
+
+    // Second we get the angle to the ship depending of the angle the ship have (we control it with the
+    // arrow of the keyboard)
     game->gameObjects->universe->ship.directionVector.vector.x = cos(game->gameObjects->universe->ship.angle);
     game->gameObjects->universe->ship.directionVector.vector.y = sin(game->gameObjects->universe->ship.angle);
 
-        game->gameObjects->universe->ship.rectShip.x +=
-                game->gameObjects->universe->ship.directionVector.vector.x * 10 * .1;
-        game->gameObjects->universe->ship.rectShip.y +=
-                game->gameObjects->universe->ship.directionVector.vector.y* 10 * .1;
-        ////////////////////
-        // This part handle the max X and max Y of the ship
-        if (game->gameObjects->universe->ship.rectShip.x > game->WINDOW_LENGHT) {
-            game->gameObjects->universe->ship.rectShip.x = 0;
-        }
-        if (game->gameObjects->universe->ship.rectShip.x < 0) {
-            game->gameObjects->universe->ship.rectShip.x = game->WINDOW_LENGHT;
-        }
-        if (game->gameObjects->universe->ship.rectShip.y > game->WINDOW_HEIGHT) {
-            game->gameObjects->universe->ship.rectShip.y = 0;
-        }
-        if (game->gameObjects->universe->ship.rectShip.y < 0) {
-            game->gameObjects->universe->ship.rectShip.y = game->WINDOW_HEIGHT;
-        }
+    // Finally we apply the direction vector to the ship to move it, we multiply it by a speed (here it's 8) and a coefficient
+    // The coefficient allow to have coherent values of move, if we not do that the ship will move too fast
+    game->gameObjects->universe->ship.rectShip.x +=
+            game->gameObjects->universe->ship.directionVector.vector.x * SHIP_SPEED * SHIP_VECTOR_DIRECTION_COEFFICIENT;
+    game->gameObjects->universe->ship.rectShip.y +=
+            game->gameObjects->universe->ship.directionVector.vector.y * SHIP_SPEED * SHIP_VECTOR_DIRECTION_COEFFICIENT;
 
+    ////////////////////
+    // This part handle the max X and max Y of the ship and teleporte it into the opposite side of the window
+    if (game->gameObjects->universe->ship.rectShip.x > game->WINDOW_LENGHT) {
+        game->gameObjects->universe->ship.rectShip.x = 0;
+    }
+    if (game->gameObjects->universe->ship.rectShip.x < 0) {
+        game->gameObjects->universe->ship.rectShip.x = game->WINDOW_LENGHT;
+    }
+    if (game->gameObjects->universe->ship.rectShip.y > game->WINDOW_HEIGHT) {
+        game->gameObjects->universe->ship.rectShip.y = 0;
+    }
+    if (game->gameObjects->universe->ship.rectShip.y < 0) {
+        game->gameObjects->universe->ship.rectShip.y = game->WINDOW_HEIGHT;
+    }
 
 
 }
 
-/**
-* This function is called at the end of the loop, it handle all thing related to SDL for rendering the window, there must be nothing here that edit some values.
-*
-* @param game The game structure that contains all necessary elements for allow the game to run
-*/
 void render(Game *game) {
     static Planet actualPlanetLine;
 
@@ -218,23 +217,29 @@ void render(Game *game) {
         for (int j = 0; j < game->gameObjects->universe->solarSystem[i].nbPlanet; j++) {
             drawPlanet(game->render, game->gameObjects->universe->solarSystem[i].planets[j], 1, game->color->BLUE);
 
+            // This part create new circle arround the star depending of the distance of the planet to the star, it's the
+            // orbit of the actual planet
             actualPlanetLine = game->gameObjects->universe->solarSystem[i].planets[j];
             actualPlanetLine.pos.x = game->gameObjects->universe->solarSystem[i].star.pos.x;
             actualPlanetLine.pos.y = game->gameObjects->universe->solarSystem[i].star.pos.y;
             actualPlanetLine.radius = game->gameObjects->universe->solarSystem[i].planets[j].distance_to_star;
+
+            // Draw the orbit of the planet
             drawPlanet(game->render, actualPlanetLine, 0, game->color->HALF_WHITE);
         }
     }
 
     SDL_SetRenderDrawColor(game->render, 255, 0, 0, 255);
 
-    drawVector(game->render, game->gameObjects->universe->ship.angle, 30, game->gameObjects->universe->ship.rectShip);
+    // Draw the direction vector of the ship
+    drawVector(game->render, game->gameObjects->universe->ship.angle, game->gameObjects->universe->ship.rectShip);
 
     SDL_SetRenderDrawColor(game->render, 0, 255, 0, 255);
 
+    // Draw the gravity vector of the ship
     drawVector(game->render, atan2(game->gameObjects->universe->ship.directionGravityVector.vector.y,
                                    game->gameObjects->universe->ship.directionGravityVector.vector.x),
-               30, game->gameObjects->universe->ship.rectShip);
+               game->gameObjects->universe->ship.rectShip);
 
     // Update the screen
 
@@ -243,15 +248,10 @@ void render(Game *game) {
 
 }
 
-/**
-* This function launch the game, initialize necessary values for allow the game to run and start the loop.
-* 
-* @param game The game structure that contains all necessary elements for allow the game to run 
-*/
 void run(Game *game) {
 
     // Set the delta time to 60 FPS, so each update will be set each 16,7Ms
-    game->clock.DELTA_TIME = 1000 / 60.0;
+    game->clock.DELTA_TIME = 1000 / FRAMERATE;
 
     // Get for how many time SDL start running for determine the time
     game->clock.startMillis = SDL_GetTicks();
@@ -306,35 +306,32 @@ int drawStar(SDL_Renderer *render, Star star, int filled, SDL_Color *color) {
     }
 }
 
-void drawVector(SDL_Renderer *renderer, float angle, float length, SDL_FRect ship) {
-    // Calcule les coordonnées finales du vecteur en fonction de l'angle et de la longueur
-    float x2 = ship.x + length * cos(angle);
-    float y2 = ship.y + length * sin(angle);
+void drawVector(SDL_Renderer *renderer, float angle, SDL_FRect ship) {
+    // Draw a line from vector
+    // We get the position of ship, we add the lenght and from the angle of the ship we can draw a line
+    float x2 = ship.x + VECTOR_LENGTH * cos(angle);
+    float y2 = ship.y + VECTOR_LENGTH * sin(angle);
 
-    // Dessine le vecteur
-    SDL_RenderDrawLine(renderer, (int)ship.x, (int)ship.y, (int)x2, (int)y2);
+    // Draw an SDL line to show the vector
+    SDL_RenderDrawLine(renderer, (int) ship.x, (int) ship.y, (int) x2, (int) y2);
 }
 
 bool checkCollision(Ship *ship, Planet *planet) {
-    // Calcul des bords du vaisseau (rectangle)
-    float shipLeft = ship->rectShip.x;
-    float shipRight = ship->rectShip.x + ship->rectShip.w;
-    float shipTop = ship->rectShip.y;
-    float shipBottom = ship->rectShip.y + ship->rectShip.h;
+    // Get rectangle point of the ship
+    float shipPointLeft = ship->rectShip.x;
+    float shipPointRight = ship->rectShip.x + ship->rectShip.w;
+    float shipPointTop = ship->rectShip.y;
+    float shipPointBottom = ship->rectShip.y + ship->rectShip.h;
 
-    // Bords du carré de la planète
-    float planetLeft = planet->pos.x - planet->radius;
-    float planetRight = planet->pos.x + planet->radius;
-    float planetTop = planet->pos.y - planet->radius;
-    float planetBottom = planet->pos.y + planet->radius;
+    // Get rectangle point of the planet
+    float planetPointLeft = planet->pos.x - planet->radius;
+    float planetPointRight = planet->pos.x + planet->radius;
+    float planetPointTop = planet->pos.y - planet->radius;
+    float planetPointBottom = planet->pos.y + planet->radius;
 
-    // Vérifie s'il y a une collision
-    if (shipRight < planetLeft || shipLeft > planetRight || shipBottom < planetTop || shipTop > planetBottom) {
-        return false; // Aucune collision
-    }
-
-    // Collision détectée
-    return true;
+    // If the ship is in the planet rectangle return true else return false
+    return !(shipPointRight < planetPointLeft || shipPointLeft > planetPointRight || shipPointBottom < planetPointTop ||
+             shipPointTop > planetPointBottom);
 }
 
 
