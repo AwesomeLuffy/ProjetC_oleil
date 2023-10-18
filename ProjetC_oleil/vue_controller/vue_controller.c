@@ -44,7 +44,6 @@ Game *init() {
     game->isGameRunning = true;
 
     // Set the score at 0
-    game->gameObjects->score = 0;
     // To not have a nullptr when we will want to use the gameObjects, we allocate memory for it
     game->gameObjects = malloc(sizeof(GameObjects));
     game->gameObjects->gameTitleBuffer = malloc(1024);
@@ -54,6 +53,8 @@ Game *init() {
     game->gameObjects = (GameObjects *) calloc(2, sizeof(GameObjects));
     game->gameObjects->gameTitleBuffer = malloc(1024);
     game->gameObjects->universe = initUniverse();
+    game->gameObjects->score = 0;
+
 
     // Get the windows size and set into the game structure.
     game->WINDOW_LENGHT = game->gameObjects->universe->WINSIZE.x;
