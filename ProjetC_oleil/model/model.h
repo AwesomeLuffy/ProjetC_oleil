@@ -47,7 +47,7 @@ typedef struct Star_s {
 typedef struct SolarSystem_s {
     Star star;
     int nbPlanet;
-    Planet* planets;
+    Planet *planets;
 } SolarSystem;
 
 /// @brief Structure to store a ship
@@ -60,9 +60,10 @@ typedef struct Ship_s {
     Coord pos;
     int radius;
     int speed;
-    int angle;
-    Coord vector;
-    Vector* vectors;
+    float angle;
+    Vector directionGravityVector;
+    Vector directionVector;
+    Vector *vectors;
     SDL_FRect rectShip;
 
 } Ship;
@@ -74,7 +75,7 @@ typedef struct Ship_s {
 /// @param start The start position of the ship
 /// @param end The position of the end of game
 typedef struct Universe_s {
-    SolarSystem* solarSystem;
+    SolarSystem *solarSystem;
     int nbSolarSystem;
     Ship ship;
     Coord start;
@@ -86,30 +87,48 @@ typedef struct Universe_s {
 
 /// @brief Function to destroy a game
 /// @param game The game to destroy
-void destroyGame(Universe* game);
+void destroyGame(Universe *game);
 
 /// @brief Function to print a game in the terminal
 /// @param game The game to print
-void universePrint(Universe* game);
+void universePrint(Universe *game);
 
 /// @brief Function to initialize a game
 /// @return The game initialized
-Universe* initUniverse();
+Universe *initUniverse();
 
 /// @brief Function that calculate next coordinate for planet rotation
 /// @param objectCoordToRotate The planet to rotate
 /// @param objectToRotateAround The star around which the planet rotate
 /// @param angle The angle of rotation
 void rotateObjectArroundAnother(Planet *objectCoordToRotate, Star *objectToRotateAround, float *angle);
+
+/// @brief Function that calculate next coordinate for ship direction vector
+/// @param objectCoordToRotate The vector point that rotate
+/// @param objectToRotateAround The ship around which the vector rotate
+/// @param angle The angle of rotation
+void rotatePoint(Coord *objectCoordToRotate, SDL_FRect *objectToRotateAround, float angle);
+
 /// @brief Function that calculate an angle in radian from degrees
 /// @param degrees The angle in degrees
 float getAngleInRadian(int degrees);
+
 /// @brief
 /// @param
 float gravityStar(Ship ship, Star star);
+
 /// @brief
 /// @param
 float gravityPlanet(Ship ship, Planet planet);
 
-Vector additionVectorWithGravityAndAngle(Ship ship, Planet planet1, Planet planet2);
+/// @brief Function to add vectors from ship and a Planet 1 and a Planet 2
+/// @param ship The ship
+/// @param planet1 The first planet
+/// @param planet2 The second planet
+/// This function try to return a vector that represent the sum of the vectors from the ship and the
+/// two planets and the vector will be nearest the planet with the greatest force
+Vector additionVectorWithGravityAndAngle(Ship ship, Planet planet);
+/// @brief Function to add a additionate a list of vector to have one final vector.
+/// @param vectors The list of vectors
+/// @param size The size of the list
 Vector vectorSum(Vector vectors[], int size);

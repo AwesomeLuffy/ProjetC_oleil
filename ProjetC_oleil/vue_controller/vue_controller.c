@@ -3,7 +3,6 @@
 #include <math.h>
 
 
-
 void initColor(Color *color) {
     SDL_Color *RED = malloc(sizeof(SDL_Color));
     SDL_Color *GREEN = malloc(sizeof(SDL_Color));
@@ -60,6 +59,7 @@ Game *init() {
     game->WINDOW_LENGHT = game->gameObjects->universe->WINSIZE.x;
     game->WINDOW_HEIGHT = game->gameObjects->universe->WINSIZE.y;
 
+
     return game;
 }
 
@@ -70,10 +70,13 @@ Game *init() {
 */
 void update(Game *game) {
     static Vector vector[100];
-    static int ii = 0;
-    static Vector v;
+    static int planetCount = 0;
+    static Vector vectorPlanetSum;
+    static float lenght;
 
-    // TODO Ship deplacement
+    static Vector totalGravityShipVector;
+    totalGravityShipVector.vector.x = 0;
+    totalGravityShipVector.vector.y = 0;
 
     // Part to handle user interaction
     while (SDL_PollEvent(game->event) != 0) {
@@ -85,11 +88,20 @@ void update(Game *game) {
                     case SDLK_q:
                         game->isGameRunning = false;
                         break;
+                        // Rotate the ship to the left
+                    case SDLK_LEFT:
+                        game->gameObjects->universe->ship.angle -= .2;
+                        break;
+                        // Rotate the ship to the right
+                    case SDLK_RIGHT:
+                        game->gameObjects->universe->ship.angle += .2;
+                        break;
                 }
 
         }
     }
-
+    ///////////////////////
+    // Change the title of the window with FPS and Score
     if (game->clock.currentMillis - game->clock.startMillis > 0) {
 
         // Replace "%f" with the FPS, the function change the value of the char gameTitleBuffer
@@ -98,52 +110,66 @@ void update(Game *game) {
                  "ProjetC_oleil | FPS : %.02f | Lol",
                  (1000.0 / (game->clock.currentMillis - game->clock.startMillis))
         );
-        ii = 0;
+    }
+
+    ///////////////////////
+    // Part that handle the rotation of the planet arround Star
+        planetCount = 0;
         for (int i = 0; i < game->gameObjects->universe->nbSolarSystem; i++) {
             for (int j = 0; j < game->gameObjects->universe->solarSystem[i].nbPlanet; j++) {
                 rotateObjectArroundAnother(&game->gameObjects->universe->solarSystem[i].planets[j],
                                            &game->gameObjects->universe->solarSystem[i].star,
                                            &game->gameObjects->universe->solarSystem[i].planets[j].angle);
+                if(checkCollision(&game->gameObjects->universe->ship, &game->gameObjects->universe->solarSystem[i].planets[j])){
+                    printf("test");
+                    game->isGameRunning = false;
+                    return;
+                }
+                if (j + 1 <= game->gameObjects->universe->solarSystem[i].nbPlanet) {
+                    Vector gravityShipVector = additionVectorWithGravityAndAngle(game->gameObjects->universe->ship,
+                                                                                 game->gameObjects->universe->solarSystem[i].planets[j]);
+                    totalGravityShipVector.vector.x += gravityShipVector.vector.x;
+                    totalGravityShipVector.vector.y += gravityShipVector.vector.y;
 
-                if(j + 1 <= game->gameObjects->universe->solarSystem[i].nbPlanet){
-                     vector[ii] = additionVectorWithGravityAndAngle(game->gameObjects->universe->ship,
-                                                      game->gameObjects->universe->solarSystem[i].planets[j],
-                                                      game->gameObjects->universe->solarSystem[i].planets[j+1]);
-                     ii++;
+                    planetCount++;
                 }
 
             }
         }
 
+        // This part handle the movement of the ship
+        if (planetCount != 0) {
 
-        if(ii != 0){
+            game->gameObjects->universe->ship.rectShip.x += totalGravityShipVector.vector.x * 0.07;
+            game->gameObjects->universe->ship.rectShip.y += totalGravityShipVector.vector.y * 0.07;
 
-            v = vectorSum(vector, ii);
-            game->gameObjects->universe->ship.rectShip.x += v.vector.x * 0.01;
-            game->gameObjects->universe->ship.rectShip.y += v.vector.y * 0.01;
+            game->gameObjects->universe->ship.directionGravityVector = totalGravityShipVector;
 
-            game->gameObjects->universe->ship.rectShip.y -= 2;
 
-            game->gameObjects->universe->ship.vector = v.vector;
 
 
         }
+    game->gameObjects->universe->ship.directionVector.vector.x = cos(game->gameObjects->universe->ship.angle);
+    game->gameObjects->universe->ship.directionVector.vector.y = sin(game->gameObjects->universe->ship.angle);
 
-        if(game->gameObjects->universe->ship.rectShip.x > game->WINDOW_LENGHT ){
+        game->gameObjects->universe->ship.rectShip.x +=
+                game->gameObjects->universe->ship.directionVector.vector.x * 10 * .1;
+        game->gameObjects->universe->ship.rectShip.y +=
+                game->gameObjects->universe->ship.directionVector.vector.y* 10 * .1;
+        ////////////////////
+        // This part handle the max X and max Y of the ship
+        if (game->gameObjects->universe->ship.rectShip.x > game->WINDOW_LENGHT) {
             game->gameObjects->universe->ship.rectShip.x = 0;
         }
-        if(game->gameObjects->universe->ship.rectShip.x < 0){
-            game->gameObjects->universe->ship.rectShip.x = game->WINDOW_LENGHT ;
+        if (game->gameObjects->universe->ship.rectShip.x < 0) {
+            game->gameObjects->universe->ship.rectShip.x = game->WINDOW_LENGHT;
         }
-        if(game->gameObjects->universe->ship.rectShip.y > game->WINDOW_HEIGHT){
+        if (game->gameObjects->universe->ship.rectShip.y > game->WINDOW_HEIGHT) {
             game->gameObjects->universe->ship.rectShip.y = 0;
         }
-        if(game->gameObjects->universe->ship.rectShip.y < 0){
+        if (game->gameObjects->universe->ship.rectShip.y < 0) {
             game->gameObjects->universe->ship.rectShip.y = game->WINDOW_HEIGHT;
         }
-
-    }
-
 
 
 
@@ -179,22 +205,14 @@ void render(Game *game) {
     // Draw the ship square
     SDL_RenderFillRectF(game->render, &(game->gameObjects->universe->ship.rectShip));
 
-    SDL_RenderDrawLine(game->render,
-                       game->gameObjects->universe->ship.rectShip.x,
-                       game->gameObjects->universe->ship.rectShip.y,
-                       game->gameObjects->universe->ship.rectShip.x + (game->gameObjects->universe->ship.vector.x * 0.01),
-                       game->gameObjects->universe->ship.rectShip.y + (game->gameObjects->universe->ship.vector.y * 0.01));
 
     SDL_SetRenderDrawColor(game->render, 255, 0, 0, 255);
-    SDL_RenderDrawLine(game->render,
-                       game->gameObjects->universe->ship.rectShip.x,
-                       game->gameObjects->universe->ship.rectShip.y,
-                       game->gameObjects->universe->ship.rectShip.x + 30,
-                       game->gameObjects->universe->ship.rectShip.y - 30);
 
     // Change the window title to show game name, fps , etc.)
     SDL_SetWindowTitle(game->window, game->gameObjects->gameTitleBuffer);
 
+
+    // Render the planets and the star
     for (int i = 0; i < game->gameObjects->universe->nbSolarSystem; i++) {
         drawStar(game->render, game->gameObjects->universe->solarSystem[i].star, 1, game->color->YELLOW);
         for (int j = 0; j < game->gameObjects->universe->solarSystem[i].nbPlanet; j++) {
@@ -207,6 +225,16 @@ void render(Game *game) {
             drawPlanet(game->render, actualPlanetLine, 0, game->color->HALF_WHITE);
         }
     }
+
+    SDL_SetRenderDrawColor(game->render, 255, 0, 0, 255);
+
+    drawVector(game->render, game->gameObjects->universe->ship.angle, 30, game->gameObjects->universe->ship.rectShip);
+
+    SDL_SetRenderDrawColor(game->render, 0, 255, 0, 255);
+
+    drawVector(game->render, atan2(game->gameObjects->universe->ship.directionGravityVector.vector.y,
+                                   game->gameObjects->universe->ship.directionGravityVector.vector.x),
+               30, game->gameObjects->universe->ship.rectShip);
 
     // Update the screen
 
@@ -221,17 +249,6 @@ void render(Game *game) {
 * @param game The game structure that contains all necessary elements for allow the game to run 
 */
 void run(Game *game) {
-
-
-    SDL_Rect rectangle = {300, 675, 10, 10}; // Definition of a test rectangle
-    // Set the rectangle as a gameObjects to update and render it
-    game->gameObjects->rectangle = &rectangle;
-    Coord planet1Coord = {500, 500};
-    Planet planet1 = {planet1Coord, 10, 10};
-    game->gameObjects->planet1 = &planet1;
-    Coord planet2Coord = {500, 450};
-    Planet planet2 = {planet2Coord, 10, 10};
-    game->gameObjects->planet2 = &planet2;
 
     // Set the delta time to 60 FPS, so each update will be set each 16,7Ms
     game->clock.DELTA_TIME = 1000 / 60.0;
@@ -288,3 +305,38 @@ int drawStar(SDL_Renderer *render, Star star, int filled, SDL_Color *color) {
                           star.radius, color->r, color->g, color->b, color->a);
     }
 }
+
+void drawVector(SDL_Renderer *renderer, float angle, float length, SDL_FRect ship) {
+    // Calcule les coordonnées finales du vecteur en fonction de l'angle et de la longueur
+    float x2 = ship.x + length * cos(angle);
+    float y2 = ship.y + length * sin(angle);
+
+    // Dessine le vecteur
+    SDL_RenderDrawLine(renderer, (int)ship.x, (int)ship.y, (int)x2, (int)y2);
+}
+
+bool checkCollision(Ship *ship, Planet *planet) {
+    // Calcul des bords du vaisseau (rectangle)
+    float shipLeft = ship->rectShip.x;
+    float shipRight = ship->rectShip.x + ship->rectShip.w;
+    float shipTop = ship->rectShip.y;
+    float shipBottom = ship->rectShip.y + ship->rectShip.h;
+
+    // Bords du carré de la planète
+    float planetLeft = planet->pos.x - planet->radius;
+    float planetRight = planet->pos.x + planet->radius;
+    float planetTop = planet->pos.y - planet->radius;
+    float planetBottom = planet->pos.y + planet->radius;
+
+    // Vérifie s'il y a une collision
+    if (shipRight < planetLeft || shipLeft > planetRight || shipBottom < planetTop || shipTop > planetBottom) {
+        return false; // Aucune collision
+    }
+
+    // Collision détectée
+    return true;
+}
+
+
+
+

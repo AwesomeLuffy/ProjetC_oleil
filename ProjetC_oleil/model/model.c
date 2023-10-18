@@ -103,7 +103,6 @@ Universe *initUniverse() {
 
             game->solarSystem[i].planets[j].angle = getAngleInRadian(game->solarSystem[i].planets[j].radius);
 
-            printf("Angle : %f\n", game->solarSystem[i].planets[j].angle);
 
             game->solarSystem[i].planets[j].pos.x = game->solarSystem[i].star.pos.x;
             if (game->solarSystem[i].planets[j].orbit < 0)
@@ -189,6 +188,26 @@ void rotateObjectArroundAnother(Planet *objectCoordToRotate, Star *objectToRotat
 }
 
 /**
+ * @brief Same as rotateObjectArroundAnother but for a point
+ * @param objectCoordToRotate
+ * @param objectToRotateAround
+ * @param angle
+ */
+void rotatePoint(Coord* objectCoordToRotate, SDL_FRect *objectToRotateAround, float angle) {
+    // To not recreate the variable each time
+    static double distanceX;
+    static double distanceY;
+
+    // Get the distance between the planet and the star
+    distanceX = objectCoordToRotate->x - objectToRotateAround->x;
+    distanceY = objectCoordToRotate->y - objectToRotateAround->y;
+
+    // Rotate the planet arround the star
+    objectCoordToRotate->x = distanceX * cos(angle) - distanceY * sin(angle) + objectToRotateAround->x;
+    objectCoordToRotate->y = distanceX * sin(angle) + distanceY * cos(angle) + objectToRotateAround->y;
+}
+
+/**
  * @brief Get the Angle In Radian object
  * @param degrees
  * @return the result of the conversion in radian
@@ -205,33 +224,39 @@ float gravityStar(Ship ship, Star star) {
 float gravityPlanet(Ship ship, Planet planet) {
     return 2000.0 * (planet.radius / (pow(ship.pos.x - planet.pos.x, 2) + pow(ship.pos.y - planet.pos.y, 2)));
 }
-Vector additionVectorWithGravityAndAngle(Ship ship, Planet planet1, Planet planet2) {
-    static Vector newVector;
-    static Vector fVector;
-    static Vector sVector;
-    static Coord VectorA;
-    static Coord VectorB;
 
-    VectorA = (Coord) {ship.pos.x - planet1.pos.x, ship.pos.y - planet1.pos.y};
-    VectorB = (Coord) {ship.pos.x - planet2.pos.x, ship.pos.y - planet2.pos.y};
+Vector additionVectorWithGravityAndAngle(Ship ship, Planet planet) {
+    Vector result;
 
-    float distanceA = sqrt(pow(VectorA.x, 2) + pow(VectorA.y, 2));
-    float distanceB = sqrt(pow(VectorB.x, 2) + pow(VectorB.y, 2));
+    // Calcul de la distance entre le vaisseau et la planète
+    float dx = planet.pos.x - ship.pos.x;
+    float dy = planet.pos.y - ship.pos.y;
+    float distance = sqrt(dx * dx + dy * dy);
 
-    float force = gravityPlanet(ship, planet1);
+    // Calcul de la masse de la planète en utilisant son rayon
+    float planetMass = (4.0 / 3.0) * M_PI * pow(planet.radius, 3);
 
-    float theta = acos((VectorA.x * VectorB.x + VectorA.y * VectorB.y) /
-            (distanceA * distanceB)) / force;
-    //printf("Theta : %f\n", theta);
-    float new_X = distanceA * cos(theta);
-    float new_Y = distanceA * sin(theta);
+    // Calcul de la force de gravité
+    float gravitationalForce = 1000 * (1.0 * planetMass) / (distance * distance);
 
-    return newVector = (Vector) {force, 0, new_X, new_Y};
-    //printf("New X : %f -- %f\n", new_X, new_Y);
+    // Calcul de l'angle du vecteur
+    float angle = atan2(dy, dx);
+
+    // Calcul des composantes x et y du vecteur de gravité
+    float forceX = gravitationalForce * cos(angle);
+    float forceY = gravitationalForce * sin(angle);
+
+    // Remplissage du résultat
+    result.force = gravitationalForce;
+    result.angle = angle;
+    result.vector.x = forceX;
+    result.vector.y = forceY;
+
+    return result;
 }
 
 Vector vectorSum(Vector vectors[], int size){
-    Vector finalVector = (Vector) {0, 0, 0, 0};
+    Vector finalVector = {0, 0, 0, 0};
     for (int i = 0; i < size; i++) {
         finalVector.vector.x += vectors[i].vector.x / ((vectors[i].force == 0) ? 1 : vectors[i].force * .1);
         finalVector.vector.y += vectors[i].vector.y / ((vectors[i].force == 0) ? 1 : vectors[i].force * .1);

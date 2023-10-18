@@ -92,3 +92,6 @@ void render(Game *game);
 int drawPlanet(SDL_Renderer *render, Planet planet, int filled, SDL_Color *color);
 
 int drawStar(SDL_Renderer *render, Star star, int filled, SDL_Color *color);
+void drawVector(SDL_Renderer *renderer, float angle, float length, SDL_FRect ship);
+
+bool checkCollision(Ship *ship, Planet *planet);
