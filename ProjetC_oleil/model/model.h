@@ -1,4 +1,5 @@
 #pragma once
+
 #include <SDL2/SDL.h>
 #include <math.h>
 
@@ -16,6 +17,7 @@ typedef struct Coord_s {
 typedef struct Vector_s {
     int force;
     int angle;
+    Coord vector;
 } Vector;
 
 /// @brief Structure to store a planet
@@ -59,8 +61,9 @@ typedef struct Ship_s {
     int radius;
     int speed;
     int angle;
+    Coord vector;
     Vector* vectors;
-    SDL_Rect rectShip;
+    SDL_FRect rectShip;
 
 } Ship;
 
@@ -78,6 +81,7 @@ typedef struct Universe_s {
     SDL_Rect rectStart;
     Coord end;
     SDL_Rect rectEnd;
+    Coord WINSIZE;
 } Universe;
 
 /// @brief Function to destroy a game
@@ -100,3 +104,12 @@ void rotateObjectArroundAnother(Planet *objectCoordToRotate, Star *objectToRotat
 /// @brief Function that calculate an angle in radian from degrees
 /// @param degrees The angle in degrees
 float getAngleInRadian(int degrees);
+/// @brief
+/// @param
+float gravityStar(Ship ship, Star star);
+/// @brief
+/// @param
+float gravityPlanet(Ship ship, Planet planet);
+
+Vector additionVectorWithGravityAndAngle(Ship ship, Planet planet1, Planet planet2);
+Vector vectorSum(Vector vectors[], int size);

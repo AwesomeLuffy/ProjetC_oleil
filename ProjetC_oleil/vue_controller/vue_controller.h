@@ -53,6 +53,8 @@ typedef struct Game_s {
     GameObjects* gameObjects;
     Color* color;
     Clock clock;
+    int WINDOW_HEIGHT;
+    int WINDOW_LENGHT;
 } Game;
 
 /**

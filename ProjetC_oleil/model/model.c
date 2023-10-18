@@ -4,28 +4,26 @@
 
 // This coefficient is to reduce the orbit speed of the planet cause if we set 130 for example it's too big
 #define COEFFICIENT_PLANET_SPEED_SLOWDOWN 60
-Universe* initUniverse()
-{
 
-    FILE* file = fopen("../config.txt", "r");
-    if(file == NULL)
-    {
+Universe *initUniverse() {
+
+    FILE *file = fopen("../config.txt", "r");
+    if (file == NULL) {
         printf("Erreur lors de l'ouverture du fichier config.txt\n");
         exit(1);
     }
 
-    Universe* game = (Universe*)calloc(1, sizeof(Universe));
+    Universe *game = (Universe *) calloc(1, sizeof(Universe));
 
 
     //Take the window size from the config.txt file
     Coord WinSize;
     char line[16] = {0};
     fscanf(file, "%s %f %f", line, &WinSize.x, &WinSize.y);
-
+    game->WINSIZE = WinSize;
     //Take the start position from the config.txt file
     fscanf(file, "%s %f %f", line, &game->start.x, &game->start.y);
-    if(game->start.x < 0 || game->start.x > WinSize.x || game->start.y < 0 || game->start.y > WinSize.y)
-    {
+    if (game->start.x < 0 || game->start.x > WinSize.x || game->start.y < 0 || game->start.y > WinSize.y) {
         printf("Error in the config.txt file, closing program.\n");
         free(game);
         return NULL;
@@ -46,8 +44,7 @@ Universe* initUniverse()
     game->ship.rectShip.h = 10;
 
     fscanf(file, "%s %f %f", line, &game->end.x, &game->end.y);
-    if(game->end.x < 0 || game->end.x > WinSize.x || game->end.y < 0 || game->end.y > WinSize.y)
-    {
+    if (game->end.x < 0 || game->end.x > WinSize.x || game->end.y < 0 || game->end.y > WinSize.y) {
         printf("Error in the config.txt file.\n");
         free(game);
         return NULL;
@@ -61,49 +58,42 @@ Universe* initUniverse()
     int nbSolarSystem = 0;
     fscanf(file, "%s %d", line, &nbSolarSystem);
 
-    if(nbSolarSystem < 0)
-    {
+    if (nbSolarSystem < 0) {
         printf("Error in the config.txt file.\n");
         free(game);
         return NULL;
     }
 
-    game->solarSystem = (SolarSystem*)calloc(nbSolarSystem, sizeof(SolarSystem));
-    if(!game->solarSystem)
-    {
+    game->solarSystem = (SolarSystem *) calloc(nbSolarSystem, sizeof(SolarSystem));
+    if (!game->solarSystem) {
         printf("Error while allocating memory for the solar system.\n");
         free(game);
         return NULL;
     }
 
     game->nbSolarSystem = nbSolarSystem;
-    for(int i = 0; i < nbSolarSystem; i++)
-    {
+    for (int i = 0; i < nbSolarSystem; i++) {
         fscanf(file, "%s %f %f", line, &game->solarSystem[i].star.pos.x, &game->solarSystem[i].star.pos.y);
         fscanf(file, "%s %d", line, &game->solarSystem[i].star.radius);
 
         int nbPlanet = 0;
         fscanf(file, "%s %d", line, &nbPlanet);
-        if(nbPlanet < 0)
-        {
+        if (nbPlanet < 0) {
             printf("Error in the config.txt file.\n");
             free(game);
             return NULL;
         }
 
-        game->solarSystem[i].planets = (Planet*)calloc(nbPlanet, sizeof(Planet));
-        if(!game->solarSystem[i].planets)
-        {
+        game->solarSystem[i].planets = (Planet *) calloc(nbPlanet, sizeof(Planet));
+        if (!game->solarSystem[i].planets) {
             printf("Error while allocating memory for the planets.\n");
             free(game);
             return NULL;
         }
         game->solarSystem[i].nbPlanet = nbPlanet;
-        for(int j = 0; j < nbPlanet; j++)
-        {
+        for (int j = 0; j < nbPlanet; j++) {
             fscanf(file, "%s %d", line, &game->solarSystem[i].planets[j].radius);
-            if(game->solarSystem[i].planets[j].radius < 0)
-            {
+            if (game->solarSystem[i].planets[j].radius < 0) {
                 printf("Error in the config.txt file.\n");
                 free(game);
                 return NULL;
@@ -116,11 +106,14 @@ Universe* initUniverse()
             printf("Angle : %f\n", game->solarSystem[i].planets[j].angle);
 
             game->solarSystem[i].planets[j].pos.x = game->solarSystem[i].star.pos.x;
-            if(game->solarSystem[i].planets[j].orbit < 0)
-                game->solarSystem[i].planets[j].pos.y = game->solarSystem[i].star.pos.y - game->solarSystem[i].planets[j].orbit;
-            else 
-                game->solarSystem[i].planets[j].pos.y = game->solarSystem[i].star.pos.y + game->solarSystem[i].planets[j].orbit;
-            game->solarSystem[i].planets[j].distance_to_star = game->solarSystem[i].planets[j].pos.y - game->solarSystem[i].star.pos.y;
+            if (game->solarSystem[i].planets[j].orbit < 0)
+                game->solarSystem[i].planets[j].pos.y =
+                        game->solarSystem[i].star.pos.y - game->solarSystem[i].planets[j].orbit;
+            else
+                game->solarSystem[i].planets[j].pos.y =
+                        game->solarSystem[i].star.pos.y + game->solarSystem[i].planets[j].orbit;
+            game->solarSystem[i].planets[j].distance_to_star =
+                    game->solarSystem[i].planets[j].pos.y - game->solarSystem[i].star.pos.y;
 
         }
 
@@ -132,39 +125,34 @@ Universe* initUniverse()
     return game;
 }
 
-void destroyGame(Universe* game)
-{
-    for(int i=0; i < game->nbSolarSystem; i++)
-    {
+void destroyGame(Universe *game) {
+    for (int i = 0; i < game->nbSolarSystem; i++) {
         free(game->solarSystem[i].planets);
     }
-    if(game->ship.vectors)
+    if (game->ship.vectors)
         free(game->ship.vectors);
     free(game->solarSystem);
     free(game);
 }
 
-void universePrint(Universe* game)
-{
-    if(!game)
-    {
+void universePrint(Universe *game) {
+    if (!game) {
         printf("Error while printing the game, the game is NULL.\n");
         return;
     }
     printf("\n\nGame :\n");
 
-    for(int i = 0; i < game->nbSolarSystem; i++)
-    {
-        printf("\nSolar System %d :\n", i+1);
+    for (int i = 0; i < game->nbSolarSystem; i++) {
+        printf("\nSolar System %d :\n", i + 1);
         printf("Star pos : %f %f\n", game->solarSystem[i].star.pos.x, game->solarSystem[i].star.pos.y);
         printf("Star radius : %d\n", game->solarSystem[i].star.radius);
         printf("Nb Planet : %d\n", game->solarSystem[i].nbPlanet);
-        for(int j = 0; j < game->solarSystem[i].nbPlanet; j++)
-        {
-            printf("  Planet %d :\n", j+1);
+        for (int j = 0; j < game->solarSystem[i].nbPlanet; j++) {
+            printf("  Planet %d :\n", j + 1);
             printf("  Planet radius : %d\n", game->solarSystem[i].planets[j].radius);
             printf("  Planet orbit : %d\n", game->solarSystem[i].planets[j].orbit);
-            printf("  Planet pos : %f %f\n", game->solarSystem[i].planets[j].pos.x, game->solarSystem[i].planets[j].pos.y);
+            printf("  Planet pos : %f %f\n", game->solarSystem[i].planets[j].pos.x,
+                   game->solarSystem[i].planets[j].pos.y);
         }
     }
 }
@@ -206,6 +194,47 @@ void rotateObjectArroundAnother(Planet *objectCoordToRotate, Star *objectToRotat
  * @return the result of the conversion in radian
  * Should use this function and store the result instead of do the conversion each time
  */
-float getAngleInRadian(int radius){
+float getAngleInRadian(int radius) {
     return 4 * M_PI / (60 * radius);
+}
+
+float gravityStar(Ship ship, Star star) {
+    return 2000.0 * (star.radius / (pow(ship.pos.x - star.pos.x, 2) + pow(ship.pos.y - star.pos.y, 2)));
+}
+
+float gravityPlanet(Ship ship, Planet planet) {
+    return 2000.0 * (planet.radius / (pow(ship.pos.x - planet.pos.x, 2) + pow(ship.pos.y - planet.pos.y, 2)));
+}
+Vector additionVectorWithGravityAndAngle(Ship ship, Planet planet1, Planet planet2) {
+    static Vector newVector;
+    static Vector fVector;
+    static Vector sVector;
+    static Coord VectorA;
+    static Coord VectorB;
+
+    VectorA = (Coord) {ship.pos.x - planet1.pos.x, ship.pos.y - planet1.pos.y};
+    VectorB = (Coord) {ship.pos.x - planet2.pos.x, ship.pos.y - planet2.pos.y};
+
+    float distanceA = sqrt(pow(VectorA.x, 2) + pow(VectorA.y, 2));
+    float distanceB = sqrt(pow(VectorB.x, 2) + pow(VectorB.y, 2));
+
+    float force = gravityPlanet(ship, planet1);
+
+    float theta = acos((VectorA.x * VectorB.x + VectorA.y * VectorB.y) /
+            (distanceA * distanceB)) / force;
+    //printf("Theta : %f\n", theta);
+    float new_X = distanceA * cos(theta);
+    float new_Y = distanceA * sin(theta);
+
+    return newVector = (Vector) {force, 0, new_X, new_Y};
+    //printf("New X : %f -- %f\n", new_X, new_Y);
+}
+
+Vector vectorSum(Vector vectors[], int size){
+    Vector finalVector = (Vector) {0, 0, 0, 0};
+    for (int i = 0; i < size; i++) {
+        finalVector.vector.x += vectors[i].vector.x / ((vectors[i].force == 0) ? 1 : vectors[i].force * .1);
+        finalVector.vector.y += vectors[i].vector.y / ((vectors[i].force == 0) ? 1 : vectors[i].force * .1);
+    }
+    return finalVector;
 }

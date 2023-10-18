@@ -57,6 +57,9 @@ Game *init() {
     game->gameObjects->gameTitleBuffer = malloc(1024);
     game->gameObjects->universe = initUniverse();
 
+    game->WINDOW_LENGHT = game->gameObjects->universe->WINSIZE.x;
+    game->WINDOW_HEIGHT = game->gameObjects->universe->WINSIZE.y;
+
     return game;
 }
 
@@ -66,6 +69,11 @@ Game *init() {
 * @param game The game structure that contains all necessary elements for allow the game to run
 */
 void update(Game *game) {
+    static Vector vector[100];
+    static int ii = 0;
+    static Vector v;
+
+    // TODO Ship deplacement
 
     // Part to handle user interaction
     while (SDL_PollEvent(game->event) != 0) {
@@ -87,17 +95,52 @@ void update(Game *game) {
         // Replace "%f" with the FPS, the function change the value of the char gameTitleBuffer
         snprintf(game->gameObjects->gameTitleBuffer,
                  sizeof(char[1024]),
-                 "ProjetC_oleil | FPS : %f | Lol",
+                 "ProjetC_oleil | FPS : %.02f | Lol",
                  (1000.0 / (game->clock.currentMillis - game->clock.startMillis))
         );
+        ii = 0;
         for (int i = 0; i < game->gameObjects->universe->nbSolarSystem; i++) {
             for (int j = 0; j < game->gameObjects->universe->solarSystem[i].nbPlanet; j++) {
                 rotateObjectArroundAnother(&game->gameObjects->universe->solarSystem[i].planets[j],
                                            &game->gameObjects->universe->solarSystem[i].star,
                                            &game->gameObjects->universe->solarSystem[i].planets[j].angle);
+
+                if(j + 1 <= game->gameObjects->universe->solarSystem[i].nbPlanet){
+                     vector[ii] = additionVectorWithGravityAndAngle(game->gameObjects->universe->ship,
+                                                      game->gameObjects->universe->solarSystem[i].planets[j],
+                                                      game->gameObjects->universe->solarSystem[i].planets[j+1]);
+                     ii++;
+                }
+
             }
         }
 
+
+        if(ii != 0){
+
+            v = vectorSum(vector, ii);
+            game->gameObjects->universe->ship.rectShip.x += v.vector.x * 0.01;
+            game->gameObjects->universe->ship.rectShip.y += v.vector.y * 0.01;
+
+            game->gameObjects->universe->ship.rectShip.y -= 2;
+
+            game->gameObjects->universe->ship.vector = v.vector;
+
+
+        }
+
+        if(game->gameObjects->universe->ship.rectShip.x > game->WINDOW_LENGHT ){
+            game->gameObjects->universe->ship.rectShip.x = 0;
+        }
+        if(game->gameObjects->universe->ship.rectShip.x < 0){
+            game->gameObjects->universe->ship.rectShip.x = game->WINDOW_LENGHT ;
+        }
+        if(game->gameObjects->universe->ship.rectShip.y > game->WINDOW_HEIGHT){
+            game->gameObjects->universe->ship.rectShip.y = 0;
+        }
+        if(game->gameObjects->universe->ship.rectShip.y < 0){
+            game->gameObjects->universe->ship.rectShip.y = game->WINDOW_HEIGHT;
+        }
 
     }
 
@@ -134,9 +177,20 @@ void render(Game *game) {
     SDL_SetRenderDrawColor(game->render, 0, 255, 0, 255);
 
     // Draw the ship square
-    SDL_RenderFillRect(game->render, &(game->gameObjects->universe->ship.rectShip));
+    SDL_RenderFillRectF(game->render, &(game->gameObjects->universe->ship.rectShip));
 
+    SDL_RenderDrawLine(game->render,
+                       game->gameObjects->universe->ship.rectShip.x,
+                       game->gameObjects->universe->ship.rectShip.y,
+                       game->gameObjects->universe->ship.rectShip.x + (game->gameObjects->universe->ship.vector.x * 0.01),
+                       game->gameObjects->universe->ship.rectShip.y + (game->gameObjects->universe->ship.vector.y * 0.01));
 
+    SDL_SetRenderDrawColor(game->render, 255, 0, 0, 255);
+    SDL_RenderDrawLine(game->render,
+                       game->gameObjects->universe->ship.rectShip.x,
+                       game->gameObjects->universe->ship.rectShip.y,
+                       game->gameObjects->universe->ship.rectShip.x + 30,
+                       game->gameObjects->universe->ship.rectShip.y - 30);
 
     // Change the window title to show game name, fps , etc.)
     SDL_SetWindowTitle(game->window, game->gameObjects->gameTitleBuffer);
@@ -187,7 +241,7 @@ void run(Game *game) {
 
     // Game loop
     while (game->isGameRunning) {
-        // Get for how many time the game run
+        // Get for how many times the game run
         game->clock.currentMillis = SDL_GetTicks();
 
         // Each 16,7ms (so to allow the game to run at 60FPS) we process to an update
